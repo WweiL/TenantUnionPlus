@@ -1,0 +1,26 @@
+drop table if exists room;
+create table room (
+  building_name varchar(20) not NULL 'home',
+  location varchar(40) not NULL 'home',
+  room_num integer(5) not NULL 0,
+  price integer(4) not NULL 0,
+  bedroom_num integer(1) not NULL 0,
+  bath_num integer(1) not NULL 0,
+  available bit not NULL 0,
+  furnished bit not NULL 0,
+  air_condition bit not NULL 0,
+  dishwasher bit not NULL 0,
+  landury bit not NULL 0,
+  balcony bit not NULL 0,
+  parking bit not NULL 0,
+  pet bit not NULL 0,
+  web varchar(50) not NULL 'none',
+  phone integer(12) not NULL 0,
+  elec bit not NULL 0,
+  water bit not NULL 0,
+  Gas bit not NULL 0,
+  Internet bit not NULL 0,
+  TV bit not NULL 0,
+  info char(100) not NULL 'none',
+  PRIMARY KEY (building_name,room_num)
+);
