@@ -1,0 +1,7 @@
+TenantUnionPlus/client_secret.json
+TenantUnionPlus/*.pyc
+TenantUnionPlus/__pycache__/
+TenantUnionPlus/useless(maybe)/
+TenantUnionPlus/static/
+!TenantUnionPlus/static/account.svg
+TenantUnionPlus.egg-info/
