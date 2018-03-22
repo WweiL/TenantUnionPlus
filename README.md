@@ -8,7 +8,7 @@ Web project for CS411. Helps students find ideal apartment.
 2. Goto TenantUnionPlus
 3. run the following:
     `pip install --editable .`
-    `export FLASK_APP=server`
+    `export FLASK_APP=server.py`
     `export FLASK_DEBUG=true` // don't do this when launching the website to public.
     `flask run`
 4. Goto TenantUnionPlus/TenantUnionPlus
