@@ -1,4 +1,4 @@
-# CU-Housing
+# TenantUnionPlus
 Web project for CS411. Helps students find ideal apartment.
 
 # To start:
