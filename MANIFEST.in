@@ -1,0 +1,3 @@
+graft TenantUnion+/templates
+graft TenantUnion+/static
+include TenantUnion+/schema.sql
