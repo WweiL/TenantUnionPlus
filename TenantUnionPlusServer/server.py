@@ -33,9 +33,9 @@ CLIENT_SECRETS_FILE = "client_secret.json"
 ## SEE: https://developers.google.com/identity/protocols/googlescopes
 # This OAuth 2.0 access scope allows for full read/write access to the
 # authenticated user's account and requires requests to use an SSL connection.
-SCOPES = ['profile']
-# API_SERVICE_NAME = 'drive'
-# API_VERSION = 'v2'
+SCOPES = ['profile']#, 'email']
+API_SERVICE_NAME = 'plus'
+API_VERSION = 'v1'
 
 # Note: A secret key is included in the sample so that it works.
 # If you use this code in your application, replace this with a truly secret
@@ -53,23 +53,41 @@ def login():
     credentials = google.oauth2.credentials.Credentials(
       **session['credentials'])
 
-    # drive = googleapiclient.discovery.build(
-      # API_SERVICE_NAME, API_VERSION, credentials=credentials)
+    service = googleapiclient.discovery.build(
+      API_SERVICE_NAME, API_VERSION, credentials=credentials)
 
-    # files = drive.files().list().execute()
+    people_resource = service.people()
+    people_document = people_resource.get(userId='me').execute()
 
+    user_email = people_document['emails'][0][u'value'] # get user email
+    user_email_splitted = user_email.split('@')
+    user_netid = user_email_splitted[0]
+    user_email_suffix = user_email_splitted[1]
+    session['netid'] = user_netid
+    if user_email_suffix != "illinois.edu":
+        flash("You should use a illinois email to log in")
+        return redirect(url_for('logout'))
     # Save credentials back to session in case access token was refreshed.
     # ACTION ITEM: In a production app, you likely want to save these
     #              credentials in a persistent database instead.
     session['credentials'] = credentials_to_dict(credentials)
     session['logged_in'] = True
-    # return flask.jsonify(**files)
+    
+    # DATABASE
+    db = get_db()
+    c = db.cursor()
+    c.execute('SELECT count(*) FROM student WHERE NetID = (?)', [user_netid])
+    if c.fetchone() == 0:
+        c.execute('INSERT INTO student (NetID) values (?)', [user_netid])
+    db.commit()
+
     return redirect(url_for('home'))
 
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
     session.pop('credentials', None)
+    session.pop('netid', None)
     flash('You were logged out')
     return redirect(url_for('home'))
 
@@ -143,20 +161,24 @@ def recommend():
 
 @app.route('/result/')
 def result():
+    # if request.form.getlist('')....
     return 'result'
 
-@app.route('/user/info/<user_id>')
-def change_userInfo():
+@app.route('/user/<netid>')
+def profile(netid):
     if not session.get('logged_in'):
-        flash("You need to log in to edit your profile")
+        flash("You need to log in to see your profile")
         abort(401)
     db = get_db()
-    # TODO:change this to suit our project
-    db.execute('insert into entries (title, text) values (?, ?)',
-                 [request.form['title'], request.form['text']])
+    # # TODO:change this to suit our project
+    # db.execute('insert into entries (title, text) values (?, ?)',
+    #              [request.form['title'], request.form['text']])
+    c = db.cursor()
+    c.execute('SELECT * FROM student WHERE NetID = (?)', [netid])
+    user_profile = c.fetchone()
     db.commit()
-    flash('New entry was successfully posted')
-    return redirect(url_for('show_entries'))
+
+    return render_template('user_profile.html', netid=netid)
     
 
 @app.route('/house/info/<house_id>')
