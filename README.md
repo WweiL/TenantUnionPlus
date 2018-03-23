@@ -3,9 +3,9 @@ Web project for CS411. Helps students find ideal apartment.
 
 # To start:
 0. Setup venv
-1. run
+1. Goto TenantUnionPlus
+2. run
     `pip install -r requirements.txt`
-2. Goto TenantUnionPlus
 3. run the following:
     `pip install --editable .`
 4. Goto TenantUnionPlus/TenantUnionPlusServer
