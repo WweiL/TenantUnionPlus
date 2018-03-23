@@ -189,18 +189,31 @@ def profile(netid):
 
     return render_template('user_profile.html', netid=netid, name=name, gender=gender, age=age, major=major, contact=contact)
 
-@app.route('/user/<netid>/edit')
-def edit_profile(netid):
+@app.route('/user/<netid>/edit', methods=['GET', 'POST'])
+def edit_user_profile(netid):
     if not session.get('logged_in'):
         flash("You need to log in to see your profile")
         abort(401)
-    db = get_db()
-    c = db.cursor()
-    c.execute('SELECT * FROM student WHERE NetID = ?', [netid])
-    user_profile = c.fetchone()
-    db.commit()
+    
+    if request.method == 'POST':
+        name = request.form.get('name', None)
+        gender = request.form.get('gender', None)
+        age = request.form.get('age', 'notSet')
+        major = request.form.get('major', 'notSet')
+        contact = request.form.get('contact', 'notSet')
 
-    return render_template('user_profile.html', netid=netid)
+        db = get_db()
+        c = db.cursor()
+        c.execute('UPDATE student SET name = ?, \
+                                      gender = ?, \
+                                      age = ?, \
+                                      major = ?, \
+                                      mailbox = ? \
+                                      WHERE NetID = ?', [name, gender, age, major, contact, netid])
+        db.commit()
+        return redirect(url_for('profile', netid=netid))
+    else:
+        return render_template("edit_user_profile.html", netid=netid)
 
 @app.route('/house/profile/<house_id>')
 def houseProfile():

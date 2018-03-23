@@ -21,7 +21,7 @@
                           <li class="list-group-item"> Major: {{ major }} </li>
                           <li class="list-group-item"> Contact: {{ contact }} </li>
 
-                          <a class="btn btn-primary float-right" href="{{ url_for('edit_profile', ) }}">Edit</a>
+                          <a class="btn btn-primary float-right" href="{{ url_for('edit_user_profile', netid=session['netid']) }}">Edit</a>
 
                         </ul>
                   </div>
