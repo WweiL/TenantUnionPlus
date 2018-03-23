@@ -1,5 +1,6 @@
 
 import os
+import json
 import requests
 import sqlite3
 from flask import Flask, request, session, g, redirect, url_for, abort, \
@@ -13,10 +14,11 @@ import googleapiclient.discovery
 app = Flask(__name__) # create the application instance
 app.config.from_object(__name__) # load config from this file
 
+client_secret = json.load(open('client_secret.json'))
 # Load default config and override config from an environment variable
 app.config.update(dict(
     DATABASE=os.path.join(app.root_path, 'TenantUnionPlus.db'),
-    SECRET_KEY='wBwhfdLNVp0pCQqL5lVIgmXf',
+    SECRET_KEY=client_secret['web']['client_secret'],
     USERNAME='admin',
     PASSWORD='default'
 ))
@@ -76,9 +78,9 @@ def login():
     # DATABASE
     db = get_db()
     c = db.cursor()
-    c.execute('SELECT count(*) FROM student WHERE NetID = (?)', [user_netid])
+    c.execute('SELECT count(*) FROM student WHERE NetID = ?', [user_netid])
     if c.fetchone() == 0:
-        c.execute('INSERT INTO student (NetID) values (?)', [user_netid])
+        c.execute('INSERT INTO student (NetID) values ?', [user_netid])
     db.commit()
 
     return redirect(url_for('home'))
@@ -170,11 +172,8 @@ def profile(netid):
         flash("You need to log in to see your profile")
         abort(401)
     db = get_db()
-    # # TODO:change this to suit our project
-    # db.execute('insert into entries (title, text) values (?, ?)',
-    #              [request.form['title'], request.form['text']])
     c = db.cursor()
-    c.execute('SELECT * FROM student WHERE NetID = (?)', [netid])
+    c.execute('SELECT * FROM student WHERE NetID = ?', [netid])
     user_profile = c.fetchone()
     db.commit()
 
