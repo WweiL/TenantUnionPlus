@@ -35,7 +35,7 @@ CLIENT_SECRETS_FILE = "client_secret.json"
 ## SEE: https://developers.google.com/identity/protocols/googlescopes
 # This OAuth 2.0 access scope allows for full read/write access to the
 # authenticated user's account and requires requests to use an SSL connection.
-SCOPES = ['profile']#, 'email']
+SCOPES = ['profile', 'email']
 API_SERVICE_NAME = 'plus'
 API_VERSION = 'v1'
 
@@ -60,12 +60,16 @@ def login():
 
     people_resource = service.people()
     people_document = people_resource.get(userId='me').execute()
+    
+    user_name = people_document['displayName'] #get user name
+    session['name'] = user_name
 
     user_email = people_document['emails'][0][u'value'] # get user email
     user_email_splitted = user_email.split('@')
     user_netid = user_email_splitted[0]
     user_email_suffix = user_email_splitted[1]
     session['netid'] = user_netid
+
     if user_email_suffix != "illinois.edu":
         flash("You should use a illinois email to log in")
         return redirect(url_for('logout'))
@@ -80,7 +84,7 @@ def login():
     c = db.cursor()
     c.execute('SELECT count(*) FROM student WHERE NetID = ?', [user_netid])
     if c.fetchone() == 0:
-        c.execute('INSERT INTO student (NetID) values ?', [user_netid])
+        c.execute('INSERT INTO student (NetID, name) values (?, ?)', [user_netid, user_name])
     db.commit()
 
     return redirect(url_for('home'))
@@ -90,6 +94,7 @@ def logout():
     session.pop('logged_in', None)
     session.pop('credentials', None)
     session.pop('netid', None)
+    session.pop('name', None)
     flash('You were logged out')
     return redirect(url_for('home'))
 
@@ -175,13 +180,30 @@ def profile(netid):
     c = db.cursor()
     c.execute('SELECT * FROM student WHERE NetID = ?', [netid])
     user_profile = c.fetchone()
+    name = user_profile[1]
+    gender = user_profile[2]
+    age = user_profile[3]
+    major = user_profile[5]
+    contact = user_profile[6]
+    db.commit()
+
+    return render_template('user_profile.html', netid=netid, name=name, gender=gender, age=age, major=major, contact=contact)
+
+@app.route('/user/<netid>/edit')
+def edit_profile(netid):
+    if not session.get('logged_in'):
+        flash("You need to log in to see your profile")
+        abort(401)
+    db = get_db()
+    c = db.cursor()
+    c.execute('SELECT * FROM student WHERE NetID = ?', [netid])
+    user_profile = c.fetchone()
     db.commit()
 
     return render_template('user_profile.html', netid=netid)
-    
 
-@app.route('/house/info/<house_id>')
-def houseInfo():
+@app.route('/house/profile/<house_id>')
+def houseProfile():
     return 'houseInfo'
 
 
