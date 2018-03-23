@@ -1,6 +1,6 @@
 drop table if exists student;
 create table student(
-  NetID char(10) not NULL 'siebel999'
+  NetID char(10) not NULL 'siebel999',
   name varchar(20) not NULL 'Wallace',
   gender char(10) not NULL 'none',
   age integer(2) not NULL 0,
