@@ -61,9 +61,9 @@ def login():
     people_resource = service.people()
     people_document = people_resource.get(userId='me').execute()
     
-    user_name = people_document['displayName'] #get user name
+    user_name = str(people_document['displayName']) #get user name
     session['name'] = user_name
-
+    session['profile_pic'] = str(people_document['image']['url'])
     user_email = people_document['emails'][0][u'value'] # get user email
     user_email_splitted = user_email.split('@')
     user_netid = user_email_splitted[0]
@@ -157,10 +157,7 @@ def credentials_to_dict(credentials):
 
 @app.route('/')
 def home():
-    if session.get('logged_in'):
-        return render_template('navbarLoggedIn.html')
-    else:
-        return render_template('navbarNotLoggedIn.html')
+    return render_template('layout.html')
 
 @app.route('/recommend', methods=['POST'])
 def recommend():
@@ -187,7 +184,7 @@ def profile(netid):
     contact = user_profile[6]
     db.commit()
 
-    return render_template('user_profile.html', netid=netid, name=name, gender=gender, age=age, major=major, contact=contact)
+    return render_template('user_profile.html', netid=netid, name=name, gender=gender, age=age, major=major, contact=contact, profile_pic=session['profile_pic'])
 
 @app.route('/user/<netid>/edit', methods=['GET', 'POST'])
 def edit_user_profile(netid):
@@ -213,7 +210,7 @@ def edit_user_profile(netid):
         db.commit()
         return redirect(url_for('profile', netid=netid))
     else:
-        return render_template("edit_user_profile.html", netid=netid)
+        return render_template("edit_user_profile.html", netid=netid, profile_pic=session['profile_pic'])
 
 @app.route('/house/profile/<house_id>')
 def houseProfile():

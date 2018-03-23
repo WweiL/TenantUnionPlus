@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block body %}
+      <section class="jumbotron text-center">
+          <div class="row">
+              <div class="col-sm-4">
+                  <img src="{{ profile_pic }}" class="img-fluid img-circle" alt="user pic">
+              </div>
+                  <div class="col-sm-8">
+                      <form action="{{ url_for('edit_user_profile', netid=session['netid']) }}" method="post">
+                      <ul class="list-group">
+                          <li class="list-group-item"> NetID: {{ netid }} </li>
+                          <li class="list-group-item"> Name: <input name='name' type='text'> </li>
+                          <li class="list-group-item"> Gender: <input name='gender' type='text'> </li>
+                          <li class="list-group-item"> Age: <input name='age' type='text'> </li>
+                          <li class="list-group-item"> Major: <input name='major' type='text'> </li>
+                          <li class="list-group-item"> Contact: <input name='contact' type='text'> </li>
+                            <button type="submit" class="btn btn-primary float-right"> Submit </button>
+                        </ul>
+                        </form>
+                  </div>
+          </div>
+
+      </section>
+
+{% endblock %}
