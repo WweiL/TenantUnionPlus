@@ -10,7 +10,7 @@ import google_auth_oauthlib.flow
 import googleapiclient.discovery
 # from TenantUnionPlus import *
 
-     
+
 app = Flask(__name__) # create the application instance
 app.config.from_object(__name__) # load config from this file
 
@@ -74,7 +74,7 @@ def login():
     #              credentials in a persistent database instead.
     session['credentials'] = credentials_to_dict(credentials)
     session['logged_in'] = True
-    
+
     # DATABASE
     db = get_db()
     c = db.cursor()
@@ -178,11 +178,11 @@ def profile(netid):
     db.commit()
 
     return render_template('user_profile.html', netid=netid)
-    
 
-@app.route('/house/info/<house_id>')
-def houseInfo():
-    return 'houseInfo'
+
+@app.route('/house/profile/')
+def houseProfile():
+    return render_template('house_profile.html',netid=netid)
 
 
 def connect_db():

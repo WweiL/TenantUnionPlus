@@ -5,3 +5,13 @@ TenantUnionPlus/useless(maybe)/
 TenantUnionPlus/static/
 !TenantUnionPlus/static/account.svg
 TenantUnionPlus.egg-info/
+~$estion.docx
+TenantUnionPlusServer/templates/user_profile.html
+TenantUnionPlusServer/TenantUnionPlus.db
+TenantUnionPlusServer/templates/navbarLoggedIn.html
+TenantUnionPlusServer/student.sql
+TenantUnionPlusServer/client_secret.json
+TenantUnionPlusServer/__pycache__/server.cpython-36.pyc
+TenantUnionPlusServer/__pycache__/server.cpython-36.pyc
+TenantUnionPlusServer/student.sql
+TenantUnionPlusServer/templates/navbarLoggedIn.html
