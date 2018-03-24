@@ -86,13 +86,8 @@ def login():
     c = db.cursor()
     c.execute('SELECT count(*) FROM student WHERE NetID = ?', [user_netid])
     c_fetchone = c.fetchone()
-    print(user_netid)
-    print(c_fetchone[0])
-    print(user_name)
+
     if c_fetchone[0] == 0 or c_fetchone == None:
-        print(user_netid)
-        print(c_fetchone == 0)
-        print(c_fetchone == None)
         c.execute('INSERT INTO student (NetID, name) VALUES (?, ?)', [user_netid, user_name])
     db.commit()
 
@@ -177,7 +172,7 @@ def home():
 def map():
     maps_apis = client_secret['map']
     geo_keys = [maps_apis['api1'], maps_apis['api2']]
-    address = test()
+    address, rent, bed, bath, rent, url = test()
     addr_machine = []
     
     for addr in address:
@@ -187,18 +182,24 @@ def map():
         # print("geocode time:", geocode_time - start_time)
         latitude = addr_tuple[1]
         longtitude = addr_tuple[2]
-        addr_machine.append((latitude, longtitude))
+        addr_machine.append([latitude, longtitude])
         # print("append time:" , time.time() - geocode_time )
-    return render_template('map.html', addr_machine=addr_machine)
+    length = len(address)
+    return render_template('map.html', address = address, addr_machine=addr_machine, rent=rent, bed=bed, bath=bath, url=url, length=length)
     
 @app.route('/recommend', methods=['POST'])
 def recommend():
     return render_template('/pages/question/question.html')
 
-@app.route('/result/')
+@app.route('/result', methods=['POST', 'GET'])
 def result():
-    # if request.form.getlist('')....
-    return 'result'
+    if request.method == 'POST':
+        bed = request.form.getlist('bed')
+        price = request.form.getlist('price')
+        print(bed, price)
+        return render_template('result.html')
+    else:
+        return render_template('result.html')
 
 @app.route('/user/<netid>')
 def profile(netid):
@@ -225,9 +226,9 @@ def edit_user_profile(netid):
         abort(401)
     
     if request.method == 'POST':
-        name = request.form.get('name', None)
-        gender = request.form.get('gender', None)
-        age = request.form.get('age', 'notSet')
+        name = request.form.get('name', 'notSet')
+        gender = request.form.get('gender', 'notSet')
+        age = request.form.get('age', 0)
         major = request.form.get('major', 'notSet')
         contact = request.form.get('contact', 'notSet')
 

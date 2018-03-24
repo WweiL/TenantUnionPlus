@@ -1,0 +1,113 @@
+{% extends "layout.html" %}
+{% block body %}
+  <body>
+    <h3>Browse the map</h3>
+    <div id="map"></div>
+    <script>
+      function initMap() {
+        var union = {lat: 40.1094592, lng: -88.2283148};
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 16,
+          center: union
+        });
+        var marker = new google.maps.Marker({
+          position: union,
+          map: map
+        });
+
+        var prev_infowindow = false;
+
+        {% for i in range(length) %}
+
+        var marker{{i}} = new google.maps.Marker({
+            position: new google.maps.LatLng( {{ addr_machine[i][0] }}, {{ addr_machine[i][1] }} ),
+            map: map
+        });
+
+        var contentString{{i}} = '<div id="content">'+
+           '<h4 id="firstHeading" class="firstHeading"> {{ address[i] }} </h4>'+
+           '<div id="bodyContent">'+
+           '<p><b>Rent:</b>  {{ rent[i] }} </p>'+
+           '<p><b>Beds:</b>  {{ bed[i] }} </p>'+
+           '<p><b>Baths:</b>  {{ bath[i] }} </p>'+
+           '<a href=" {{ url[i] }} "> View profile </a>'+
+           '</div>'+
+           '</div>';
+
+        var infowindow{{i}} = new google.maps.InfoWindow({
+          content: contentString{{i}}
+        });
+        
+        marker{{i}}.addListener('click', function() {
+          if( prev_infowindow ) {
+            prev_infowindow.close();
+          }
+          prev_infowindow = infowindow{{i}}
+          infowindow{{i}}.open(map, marker{{i}});
+          
+        });
+        
+
+        {% endfor %}
+        
+        
+        var contentString = '<div id="content">'+
+           '<h1 id="firstHeading" class="firstHeading"> ' + address[i] + '</h1>'+
+           '</div>'+
+           '</div>';
+
+        var infowindow = new google.maps.InfoWindow({
+          content: contentString
+        });
+        
+        marker.addListener('click', function() {
+          infowindow.open(map, marker);
+        });
+
+
+        var contentString = '<div id="content">'+
+           '<h1 id="firstHeading" class="firstHeading">union</h1>'+
+           '<div id="bodyContent">'+
+           '<p><b>Price: </b>, </p>'+
+           '</div>'+
+           '</div>';
+
+       var infowindow = new google.maps.InfoWindow({
+         content: contentString
+       });
+       
+       var marker = new google.maps.Marker({
+         position: union,
+         map: map,
+         title: 'Illinois Union'
+       });
+       marker.addListener('click', function() {
+         infowindow.open(map, marker);
+       });
+       
+      }
+      
+    //   var infowindow = new google.maps.InfoWindow();
+    //   var marker, i;
+    //
+    //   for (i = 0; i < locations.length; i++) {
+    //       marker = new google.maps.Marker({
+    //       position: new google.maps.LatLng(locations[i][1], locations[i][2]),
+    //       map: map
+    //     });
+    //
+    //     google.maps.event.addListener(marker, 'click', (function(marker, i) {
+    //       return function() {
+    //         infowindow.setContent(locations[i][0]);
+    //         infowindow.open(map, marker);
+    //       }
+    //     })(marker, i));
+    // }
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXYbOrAfV21W-SPj8ML-KXDqdP3kj3-_Y&callback=initMap">
+    </script>
+ {% endblock %}
+<!-- ADD multiple locations: https://www.taniarascia.com/google-maps-apis-for-multiple-locations/ -->
+<!-- info window: https://developers.google.com/maps/documentation/javascript/infowindows -->
+<!-- addr to machine readable: https://developers.google.com/maps/documentation/geocoding/intro -->
