@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+{% block body %}
+      <main role="main">
+          <section class="jumbotron text-center">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4">
+                      <h1> Refine by </h1>
+                      <p> Bedroom </p>
+                        <form action=' {{ url_for('result') }}' method="post">
+                            <div class="form-check">
+                              {% if not 'studio' in bed %}
+                              <input class="form-check-input" type="checkbox" value="studio" id="studio" name="bed">
+                              {% else %}
+                              <input class="form-check-input" type="checkbox" value="studio" id="studio" name="bed" cheked>
+                              {% endif %}
+                              <label class="form-check-label" for="studio">
+                                Studio
+                              </label>
+                            </div>
+                            <div class="form-check">
+                              {% if not 'oneBed' in bed %}
+                              <input class="form-check-input" type="checkbox" value="oneBed" id="oneBed" name="bed">
+                              {% else %}
+                              <input class="form-check-input" type="checkbox" value="oneBed" id="oneBed" name="bed" checked>
+                              {% endif %}
+                              <label class="form-check-label" for="oneBed">
+                                One bedroom
+                              </label>
+                            </div>
+                            <div class="form-check">
+                              {% if not 'twoBed' in bed %}
+                              <input class="form-check-input" type="checkbox" value="twoBed" id="twoBed" name="bed">
+                              {% else %}
+                              <input class="form-check-input" type="checkbox" value="twoBed" id="twoBed" name="bed" checked>
+                              {% endif %}
+                              <label class="form-check-label" for="twoBed">
+                                Two bedrooms
+                              </label>
+                            </div>
+                            <div class="form-check">
+                              {% if not 'threeBed' in bed %}
+                              <input class="form-check-input" type="checkbox" value="threeBed" id="threeBed" name="bed">
+                              {% else %}
+                              <input class="form-check-input" type="checkbox" value="threeBed" id="threeBed" name="bed" checked>
+                              {% endif %}
+                              <label class="form-check-label" for="threeBed">
+                                Three bedrooms
+                              </label>
+                            </div>
+                            <div class="form-check">
+                              {% if not 'fourBed' in bed %}
+                              <input class="form-check-input" type="checkbox" value="fourBed" id="fourBed" name="bed">
+                              {% else %}
+                              <input class="form-check-input" type="checkbox" value="fourBed" id="fourBed" name="bed" checked>
+                              {% endif %}
+                              <label class="form-check-label" for="fourBed">
+                                Four bedrooms
+                              </label>
+                            </div>
+
+
+                            <p> Price range </p>
+                            <div class="form-check">
+                                {% if not '300' in price %}
+                                <input type="checkbox" class="form-check-input" value="300" id="300" name="price">
+                                {% else %}
+                                <input type="checkbox" class="form-check-input" value="300" id="300" name="price" checked>
+                                {% endif %}
+                                <label class="form-check-label" for="300">
+                                    $300-500
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                {% if not '500' in price %}
+                                <input type="checkbox" class="form-check-input" value="500" id="500" name="price">
+                                {% else %}
+                                <input type="checkbox" class="form-check-input" value="500" id="500" name="price" checked>
+                                {% endif %}
+                                <label class="form-check-label" for="500">
+                                    $500-700
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                {% if not '700' in price %}
+                                <input type="checkbox" class="form-check-input" value="700" id="700" name="price">
+                                {% else %}
+                                <input type="checkbox" class="form-check-input" value="700" id="700" name="price" checked>
+                                {% endif %}
+                                <label class="form-check-label" for="700">
+                                    $700-900
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                {% if not '900' in price %}
+                                <input type="checkbox" class="form-check-input" value="900" id="900" name="price">
+                                {% else %}
+                                <input type="checkbox" class="form-check-input" value="900" id="900" name="price" checked>
+                                {% endif %}
+                                <label class="form-check-label" for="900">
+                                    $900-1100
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                {% if not '1100' in price %}
+                                <input type="checkbox" class="form-check-input" value="1100" id="1100" name="price">
+                                {% else %}
+                                <input type="checkbox" class="form-check-input" value="1100" id="1100" name="price" checked>
+                                {% endif %}
+                                <label class="form-check-label" for="1100">
+                                    $1100-1300
+                                </label>
+                            </div>
+
+                          <br>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                    </div>
+                    <div class="col-md-8">
+                        <div id="map"></div>
+                        <script>
+                          function initMap() {
+                            var uluru = {lat: 40.1138028, lng: -88.2270992};
+                            var map = new google.maps.Map(document.getElementById('map'), {
+                              zoom: 16,
+                              center: uluru
+                            });
+                            var marker = new google.maps.Marker({
+                              position: uluru,
+                              map: map
+                            });
+                          }
+                        </script>
+                        <script async defer
+                        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXYbOrAfV21W-SPj8ML-KXDqdP3kj3-_Y&callback=initMap">
+                        </script>
+                    </div>
+                </div>
+            </div>
+          </section>
+      </main>
+
+ {% endblock %}
+  

@@ -197,7 +197,7 @@ def result():
         bed = request.form.getlist('bed')
         price = request.form.getlist('price')
         print(bed, price)
-        return render_template('result.html')
+        return render_template('result.html', bed=bed, price=price)
     else:
         return render_template('result.html')
 
