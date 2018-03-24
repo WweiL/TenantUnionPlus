@@ -1,5 +1,5 @@
-
 import os
+import time
 import json
 import requests
 import sqlite3
@@ -8,6 +8,8 @@ from flask import Flask, request, session, g, redirect, url_for, abort, \
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
+from readlocation import geocode
+from crawler import test
 # from TenantUnionPlus import *
 
      
@@ -83,19 +85,31 @@ def login():
     db = get_db()
     c = db.cursor()
     c.execute('SELECT count(*) FROM student WHERE NetID = ?', [user_netid])
-    if c.fetchone() == 0:
-        c.execute('INSERT INTO student (NetID, name) values (?, ?)', [user_netid, user_name])
+    c_fetchone = c.fetchone()
+    print(user_netid)
+    print(c_fetchone[0])
+    print(user_name)
+    if c_fetchone[0] == 0 or c_fetchone == None:
+        print(user_netid)
+        print(c_fetchone == 0)
+        print(c_fetchone == None)
+        c.execute('INSERT INTO student (NetID, name) VALUES (?, ?)', [user_netid, user_name])
     db.commit()
 
     return redirect(url_for('home'))
 
 @app.route('/logout')
 def logout():
+    requests.post('https://accounts.google.com/o/oauth2/revoke',
+    params={'token': session['credentials']['token']},
+    headers = {'content-type': 'application/x-www-form-urlencoded'})
     session.pop('logged_in', None)
     session.pop('credentials', None)
     session.pop('netid', None)
     session.pop('name', None)
+    session.pop('profile_pic', None)
     flash('You were logged out')
+    
     return redirect(url_for('home'))
 
 @app.route('/authorize')
@@ -157,8 +171,26 @@ def credentials_to_dict(credentials):
 
 @app.route('/')
 def home():
-    return render_template('layout.html')
+    return render_template('home.html')
 
+@app.route('/map')
+def map():
+    maps_apis = client_secret['map']
+    geo_keys = [maps_apis['api1'], maps_apis['api2']]
+    address = test()
+    addr_machine = []
+    
+    for addr in address:
+        # start_time = time.time()
+        addr_tuple = geocode(addr, geo_keys)
+        # geocode_time = time.time()
+        # print("geocode time:", geocode_time - start_time)
+        latitude = addr_tuple[1]
+        longtitude = addr_tuple[2]
+        addr_machine.append((latitude, longtitude))
+        # print("append time:" , time.time() - geocode_time )
+    return render_template('map.html', addr_machine=addr_machine)
+    
 @app.route('/recommend', methods=['POST'])
 def recommend():
     return render_template('/pages/question/question.html')
@@ -212,10 +244,14 @@ def edit_user_profile(netid):
     else:
         return render_template("edit_user_profile.html", netid=netid, profile_pic=session['profile_pic'])
 
-@app.route('/house/profile/<house_id>')
-def houseProfile():
-    return 'houseInfo'
-
+@app.route('/house/profile/<building_name>')
+def houseProfile(building_name):
+    db = get_db()
+    c = db.cursor()
+    c.execute('SELECT * FROM room WHERE building_name = ?', ([building_name]))
+    user_profile = c.fetchone()
+    db.commit()
+    return render_template('house_profile.html',building_name=building_name)
 
 def connect_db():
     """Connects to the specific database."""
@@ -233,7 +269,7 @@ def get_db():
 
 def init_db():
     db = get_db()
-    with app.open_resource('student.sql', mode='r') as f:
+    with app.open_resource('TenantUnionPlus.sql', mode='r') as f:
         db.cursor().executescript(f.read())
     db.commit()
 
