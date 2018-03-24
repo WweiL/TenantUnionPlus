@@ -1,5 +1,5 @@
-
 import os
+import time
 import json
 import requests
 import sqlite3
@@ -8,9 +8,11 @@ from flask import Flask, request, session, g, redirect, url_for, abort, \
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
+from readlocation import geocode
+from crawler import test
 # from TenantUnionPlus import *
 
-     
+
 app = Flask(__name__) # create the application instance
 app.config.from_object(__name__) # load config from this file
 
@@ -60,7 +62,7 @@ def login():
 
     people_resource = service.people()
     people_document = people_resource.get(userId='me').execute()
-    
+
     user_name = str(people_document['displayName']) #get user name
     session['name'] = user_name
     session['profile_pic'] = str(people_document['image']['url'])
@@ -78,24 +80,36 @@ def login():
     #              credentials in a persistent database instead.
     session['credentials'] = credentials_to_dict(credentials)
     session['logged_in'] = True
-    
+
     # DATABASE
     db = get_db()
     c = db.cursor()
     c.execute('SELECT count(*) FROM student WHERE NetID = ?', [user_netid])
-    if c.fetchone() == 0:
-        c.execute('INSERT INTO student (NetID, name) values (?, ?)', [user_netid, user_name])
+    c_fetchone = c.fetchone()
+    print(user_netid)
+    print(c_fetchone[0])
+    print(user_name)
+    if c_fetchone[0] == 0 or c_fetchone == None:
+        print(user_netid)
+        print(c_fetchone == 0)
+        print(c_fetchone == None)
+        c.execute('INSERT INTO student (NetID, name) VALUES (?, ?)', [user_netid, user_name])
     db.commit()
 
     return redirect(url_for('home'))
 
 @app.route('/logout')
 def logout():
+    requests.post('https://accounts.google.com/o/oauth2/revoke',
+    params={'token': session['credentials']['token']},
+    headers = {'content-type': 'application/x-www-form-urlencoded'})
     session.pop('logged_in', None)
     session.pop('credentials', None)
     session.pop('netid', None)
     session.pop('name', None)
+    session.pop('profile_pic', None)
     flash('You were logged out')
+
     return redirect(url_for('home'))
 
 @app.route('/authorize')
@@ -182,16 +196,28 @@ def profile(netid):
     age = user_profile[3]
     major = user_profile[5]
     contact = user_profile[6]
-    db.commit()
+    c.execute('SELECT count(*) FROM likes WHERE NetID = ?', [netid])
+    c_fetchone = c.fetchone()
+    if c_fetchone[0] == 0 or c_fetchone == None:
+        building_name=''
+        likeornot = 0
+        db.commit()
+    else:
+        c.execute('SELECT building_name,likeornot  FROM likes WHERE NetID = ?', [netid])
+        user_likes=c.fetchall()
+        building_name=user_likes[0][0]
+        likeornot=user_likes[0][1]
+        db.commit()
 
-    return render_template('user_profile.html', netid=netid, name=name, gender=gender, age=age, major=major, contact=contact, profile_pic=session['profile_pic'])
+    return render_template('user_profile.html', netid=netid, name=name, gender=gender, age=age, major=major, contact=contact, profile_pic=session['profile_pic']
+    ,building_name=building_name,likeornot=likeornot)
 
 @app.route('/user/<netid>/edit', methods=['GET', 'POST'])
 def edit_user_profile(netid):
     if not session.get('logged_in'):
         flash("You need to log in to see your profile")
         abort(401)
-    
+
     if request.method == 'POST':
         name = request.form.get('name', None)
         gender = request.form.get('gender', None)
@@ -212,9 +238,45 @@ def edit_user_profile(netid):
     else:
         return render_template("edit_user_profile.html", netid=netid, profile_pic=session['profile_pic'])
 
-@app.route('/house/profile/<house_id>')
-def houseProfile():
-    return 'houseInfo'
+@app.route('/house/profile/<building_name>',methods=['GET', 'POST'])
+def house_profile(building_name):
+    session['building_name']=building_name
+    db = get_db()
+    c = db.cursor()
+    c.execute('SELECT * FROM room WHERE building_name = ? ', ([building_name]))
+    user_profile = c.fetchone()
+    db.commit()
+
+    if session.get('logged_in'):
+        if request.method == 'POST':
+            netid = session['netid']
+            likeornot = request.form.get('likeornot', 0)
+
+            db = get_db()
+            c = db.cursor()
+            c.execute('SELECT count(*) FROM likes WHERE building_name = ? AND NetID = ?', [building_name,netid])
+            c_fetchone = c.fetchone()
+            if c_fetchone[0] == 0 or c_fetchone == None:
+                c.execute('INSERT INTO likes (building_name,NetID,likeornot) VALUES (?, ?, ?)', [building_name,netid,0])
+            else:
+                c.execute('UPDATE likes SET likeornot = ? \
+                 WHERE building_name = ? AND NetID = ?', [likeornot , building_name , netid])
+            db.commit()
+        else:
+            netid = session['netid']
+            c.execute('SELECT count(*) FROM likes WHERE building_name = ? AND NetID = ?', [building_name,netid])
+            c_fetchone = c.fetchone()
+            if c_fetchone[0] == 0 or c_fetchone == None:
+                likeornot = 0
+                db.commit()
+            else:
+                c.execute('SELECT likeornot FROM likes WHERE building_name = ? AND  NetID = ?', ([building_name,netid]))
+                likeornot = c.fetchone()
+                likeornot = likeornot[0]
+                db.commit()
+        return render_template('house_profile.html',building_name=building_name,likeornot=likeornot)
+    else:
+        return render_template('house_profile.html',building_name=building_name)
 
 
 def connect_db():
@@ -233,7 +295,7 @@ def get_db():
 
 def init_db():
     db = get_db()
-    with app.open_resource('student.sql', mode='r') as f:
+    with app.open_resource('TenantUnionPlus.sql', mode='r') as f:
         db.cursor().executescript(f.read())
     db.commit()
 

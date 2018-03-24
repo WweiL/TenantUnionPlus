@@ -13,7 +13,7 @@
                       <li class="list-group-item"> Age: {{ age }} </li>
                       <li class="list-group-item"> Major: {{ major }} </li>
                       <li class="list-group-item"> Contact: {{ contact }} </li>
-
+                      <li class="list-group-item"> likes: {{ building_name }}:{{ likeornot }} </li>
                       <a class="btn btn-primary float-right" href="{{ url_for('edit_user_profile', netid=session['netid']) }}">Edit</a>
 
                     </ul>
@@ -22,4 +22,3 @@
 
       </section>
  {% endblock %}
-      

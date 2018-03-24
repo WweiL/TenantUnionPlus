@@ -77,6 +77,26 @@
                         </tr>
                       </tbody>
                     </table>
+
+                    {% if not session['logged_in'] %}
+
+
+                    {% else %}
+                    <h2> YourCurrentRank </h2>
+                    <div class="col">
+                        <div class="card">{{likeornot}}</div>
+
+                    </div>
+                    <div class="col-sm-8">
+                        <form action="{{ url_for('house_profile', building_name=session['building_name']) }}" method="post">
+                        <ul class="list-group">
+                            <li class="list-group-item"> rank it from 0 to 5: <input name='likeornot' type='number'> </li>
+                              <button type="submit" class="btn btn-primary float-right"> Submit </button>
+                          </ul>
+                          </form>
+                    </div>
+
+                    {% endif %}
                     <!-- Comment -->
                     <div class="card">
                       <div class="card-header">Comments</div>
