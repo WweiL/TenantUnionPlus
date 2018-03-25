@@ -11,7 +11,7 @@ import googleapiclient.discovery
 from readlocation import geocode
 from crawler import test
 # from TenantUnionPlus import *
-
+# CSS: https://stackoverflow.com/questions/22259847/application-not-picking-up-css-file-flask-python
      
 app = Flask(__name__) # create the application instance
 app.config.from_object(__name__) # load config from this file
@@ -172,7 +172,7 @@ def home():
 def map():
     maps_apis = client_secret['map']
     geo_keys = [maps_apis['api1'], maps_apis['api2']]
-    address, rent, bed, bath, rent, url = test()
+    address, bed, bath, rent, url = test()
     addr_machine = []
     
     for addr in address:
@@ -270,8 +270,13 @@ def get_db():
 
 def init_db():
     db = get_db()
+    address, bed, bath, rent, url = test()
+    c = db.cursor()
     with app.open_resource('TenantUnionPlus.sql', mode='r') as f:
-        db.cursor().executescript(f.read())
+        c.executescript(f.read())
+    for i, URL in enumerate(url):
+        c.execute("INSERT INTO room(location, price, bedroom_num, bath_num, url) VALUES (?, ?, ?, ?, ?)", \
+                [address[i], rent[i], bed[i], bath[i], url[i]])
     db.commit()
 
 @app.cli.command('initdb')
@@ -279,6 +284,43 @@ def initdb_command():
     """Initializes the database."""
     init_db()
     print('Initialized the database.')
+
+def update_house():
+    address, bed, bath, rent, url = test()
+    db = get_db()
+    c = db.cursor()
+    ''' TRIGGER? '''
+    # check house information deletion
+    c.execute("SELECT location, price, bedroom_num, bath_num, url from room")
+    whole_profile = c.fetchall()
+    for each_profile in whole_profile:
+        ''' TODO: may need to update 'each_profile[5]' when adding more attribute! '''
+        URL_db = each_profile[4]
+        if URL_db in url:
+            pass
+        else:   # house information was deleted from TenantUnion
+            c.execute("DELETE FROM romm WHERE url = ?", [URL_db])
+
+    # check house information update
+    for i, URL in enumerate(url):
+        c.execute("SELECT * FROM room WHERE url = ?", [URL])
+        house_profile = c.fetchone()
+        if house_profile == None or houseProfile == 0: # new house added
+            c.execute("INSERT INTO room(location, price, bedroom_num, bath_num, url) VALUES (?, ?, ?, ?, ?)", \
+                        [address[i], rent[i], bed[i], bath[i], url[i]])
+        else: #check whether house price get updated
+            c.execute("SELECT price FROM room WHERE url = ?", [URL])
+            price_info = c.fetchone()[0]
+            if str(price_info) != rent[i]:
+                c.execute("UPDATE room SET price = ? WHERE url = ?", [rent[i], url[i]])
+    db.commit()
+    
+    
+@app.cli.command('update')
+def update_house_command():
+    '''update house profile'''
+    update_house()
+    print('House profile update successfully')
 
 @app.teardown_appcontext
 def close_db(error):
