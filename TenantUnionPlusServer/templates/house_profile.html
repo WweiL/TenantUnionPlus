@@ -1,11 +1,5 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link href="../../bootstrap-4.0.0-dist/css/bootstrap.min.css" rel="stylesheet">
-  </head>
-  <body>
+{% extends "layout.html" %}
+{% block body %}
       <main role="main">
           <section class="jumbotron">
             <div class="container">
@@ -88,14 +82,14 @@
 
                     </div>
                     <div class="col-sm-8">
-                        <form action="{{ url_for('house_profile', building_name=session['building_name']) }}" method="post">
+                        <form action="{{ url_for('house_profile', location=session['location']) }}" method="post">
                         <ul class="list-group">
                             <li class="list-group-item"> rank it from 0 to 5: <input name='likeornot' type='number'> </li>
                               <button type="submit" class="btn btn-primary float-right"> Submit </button>
                           </ul>
                           </form>
                     </div>
-
+                    {% endif %}
                     <!-- Comment -->
                     <div class="card">
                       <div class="card-header">Comments</div>
@@ -120,8 +114,7 @@
             </div>
           </section>
       </main>
-  </body>
-</html>
+{% endblock %}
 
 <!--
       <div class="tz-gallery">

@@ -35,8 +35,10 @@ create table room (
   Internet bit not NULL default 0,
   TV bit not NULL default 0,
   info char(100) not NULL default 'none',
-  url char(100)
-  PRIMARY KEY (building_name)
+  url char(100),
+  lat FLOAT(20),
+  lng FLOAT(20)
+  -- PRIMARY KEY (location) failed if uncomment, not a primary key?
 );
 drop table if exists gym;
 create table gym (
@@ -48,8 +50,8 @@ create table gym (
 
 drop table if exists likes;
 create table likes (
-  building_name varchar(20) not NULL default 'home',
+  location varchar(20) not NULL default 'home',
   NetID varchar(40) not NULL default 'siebel999',
   likeornot integer(1) not NULL default 0,
-  PRIMARY KEY (building_name,NetID)
+  PRIMARY KEY (location, NetID)
 );

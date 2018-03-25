@@ -20,7 +20,7 @@
         {% for i in range(length) %}
 
         var marker{{i}} = new google.maps.Marker({
-            position: new google.maps.LatLng( {{ addr_machine[i][0] }}, {{ addr_machine[i][1] }} ),
+            position: new google.maps.LatLng( {{ lat[i] }}, {{ lng[i] }} ),
             map: map
         });
 
@@ -28,9 +28,10 @@
            '<h4 id="firstHeading" class="firstHeading"> {{ address[i] }} </h4>'+
            '<div id="bodyContent">'+
            '<p><b>Rent:</b>  {{ rent[i] }} </p>'+
+           '<p><b>Rent(per person):</b>  {{ unit_rent[i] }} </p>'+
            '<p><b>Beds:</b>  {{ bed[i] }} </p>'+
            '<p><b>Baths:</b>  {{ bath[i] }} </p>'+
-           '<a href=" {{ url[i] }} "> View profile </a>'+
+           '<a href=" {{ url_for('house_profile', location=address[i]) }} "> View profile </a>'+
            '</div>'+
            '</div>';
 
