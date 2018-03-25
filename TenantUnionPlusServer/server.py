@@ -215,9 +215,22 @@ def profile(netid):
     age = user_profile[3]
     major = user_profile[5]
     contact = user_profile[6]
+    c.execute('SELECT count(*) FROM likes WHERE NetID = ?', [netid])
+    c_fetchone = c.fetchone()
+    if c_fetchone[0] == 0 or c_fetchone == None:
+        building_name=''
+        likeornot = 0
+    else:
+        c.execute('SELECT building_name,likeornot  FROM likes WHERE NetID = ?', [netid])
+        user_likes=c.fetchall()
+        building_name=user_likes[0][0]
+        likeornot=user_likes[0][1]
+    
     db.commit()
-
-    return render_template('user_profile.html', netid=netid, name=name, gender=gender, age=age, major=major, contact=contact, profile_pic=session['profile_pic'])
+    return render_template('user_profile.html', netid=netid, name=name, \
+                            gender=gender, age=age, major=major, contact=contact, \
+                            profile_pic=session['profile_pic'], \
+                            building_name=building_name,likeornot=likeornot)
 
 @app.route('/user/<netid>/edit', methods=['GET', 'POST'])
 def edit_user_profile(netid):
@@ -245,14 +258,46 @@ def edit_user_profile(netid):
     else:
         return render_template("edit_user_profile.html", netid=netid, profile_pic=session['profile_pic'])
 
-@app.route('/house/profile/<building_name>')
-def houseProfile(building_name):
+@app.route('/house/profile/<building_name>',methods=['GET', 'POST'])
+def house_profile(building_name):
+    session['building_name']=building_name
     db = get_db()
     c = db.cursor()
-    c.execute('SELECT * FROM room WHERE building_name = ?', ([building_name]))
+    c.execute('SELECT * FROM room WHERE building_name = ? ', ([building_name]))
     user_profile = c.fetchone()
     db.commit()
-    return render_template('house_profile.html',building_name=building_name)
+
+    if session.get('logged_in'):
+        if request.method == 'POST':
+            netid = session['netid']
+            likeornot = request.form.get('likeornot', 0)
+
+            db = get_db()
+            c = db.cursor()
+            c.execute('SELECT count(*) FROM likes WHERE building_name = ? AND NetID = ?', [building_name,netid])
+            c_fetchone = c.fetchone()
+            if c_fetchone[0] == 0 or c_fetchone == None:
+                c.execute('INSERT INTO likes (building_name,NetID,likeornot) VALUES (?, ?, ?)', [building_name,netid,0])
+            else:
+                c.execute('UPDATE likes SET likeornot = ? \
+                 WHERE building_name = ? AND NetID = ?', [likeornot , building_name , netid])
+            db.commit()
+        else:
+            netid = session['netid']
+            c.execute('SELECT count(*) FROM likes WHERE building_name = ? AND NetID = ?', [building_name,netid])
+            c_fetchone = c.fetchone()
+            if c_fetchone[0] == 0 or c_fetchone == None:
+                likeornot = 0
+                db.commit()
+            else:
+                c.execute('SELECT likeornot FROM likes WHERE building_name = ? AND  NetID = ?', ([building_name,netid]))
+                likeornot = c.fetchone()
+                likeornot = likeornot[0]
+                db.commit()
+        return render_template('house_profile.html',building_name=building_name,likeornot=likeornot)
+    else:
+        return render_template('house_profile.html',building_name=building_name)
+
 
 def connect_db():
     """Connects to the specific database."""

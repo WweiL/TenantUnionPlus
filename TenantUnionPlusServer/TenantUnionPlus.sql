@@ -16,7 +16,6 @@ drop table if exists room;
 create table room (
   building_name varchar(20) not NULL default 'home',
   location varchar(40) not NULL default'home',
-  room_num integer(5) not NULL default 0,
   price integer(4) not NULL default 0,
   bedroom_num integer(1) not NULL default 0,
   bath_num integer(1) not NULL default 0,
@@ -36,7 +35,8 @@ create table room (
   Internet bit not NULL default 0,
   TV bit not NULL default 0,
   info char(100) not NULL default 'none',
-  PRIMARY KEY (building_name,room_num)
+  url char(100)
+  PRIMARY KEY (building_name)
 );
 drop table if exists gym;
 create table gym (
@@ -44,4 +44,12 @@ create table gym (
   location varchar(40) not NULL default 'home',
   info char(100) not NULL default 'none',
   PRIMARY KEY (building_name)
+);
+
+drop table if exists likes;
+create table likes (
+  building_name varchar(20) not NULL default 'home',
+  NetID varchar(40) not NULL default 'siebel999',
+  likeornot integer(1) not NULL default 0,
+  PRIMARY KEY (building_name,NetID)
 );

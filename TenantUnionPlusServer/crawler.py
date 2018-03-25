@@ -29,7 +29,7 @@ def test():
         rent.append(Rent)
         url.append(URL)
         
-    return address, rent, bed, bath, rent, url
+    return address, bed, bath, rent, url
 
 def preprocess(string):
     string = str(string)
