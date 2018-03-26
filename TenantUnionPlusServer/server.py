@@ -1,3 +1,4 @@
+
 import os
 import time
 import json
@@ -10,9 +11,8 @@ import google_auth_oauthlib.flow
 import googleapiclient.discovery
 from readlocation import geocode
 from crawler import test
-import numpy as np
 # from TenantUnionPlus import *
-# CSS: https://stackoverflow.com/questions/22259847/application-not-picking-up-css-file-flask-python
+
 
 app = Flask(__name__) # create the application instance
 app.config.from_object(__name__) # load config from this file
@@ -87,8 +87,13 @@ def login():
     c = db.cursor()
     c.execute('SELECT count(*) FROM student WHERE NetID = ?', [user_netid])
     c_fetchone = c.fetchone()
-
+    print(user_netid)
+    print(c_fetchone[0])
+    print(user_name)
     if c_fetchone[0] == 0 or c_fetchone == None:
+        print(user_netid)
+        print(c_fetchone == 0)
+        print(c_fetchone == None)
         c.execute('INSERT INTO student (NetID, name) VALUES (?, ?)', [user_netid, user_name])
     db.commit()
 
@@ -167,62 +172,16 @@ def credentials_to_dict(credentials):
 
 @app.route('/')
 def home():
-    return render_template('home.html')
-
-@app.route('/map')
-def map():
-    db = get_db()
-    c = db.cursor()
-    c.execute("SELECT location, price, bedroom_num, bath_num, url, lat, lng from room")
-    whole_profile = c.fetchall()
-
-    address = []
-    bed = []
-    bath = []
-    rent = []
-    url = []
-    lat = []
-    lng = []
-
-    for each_profile in whole_profile:
-        ''' TODO: may need to update 'each_profile[5]' when adding more attribute! '''
-        address.append(each_profile[0])
-        rent.append(each_profile[1])
-        bed.append(each_profile[2])
-        bath.append(each_profile[3])
-        url.append(each_profile[4])
-        lat.append(each_profile[5])
-        lng.append(each_profile[6])
-
-    rent = process_rent(rent)
-    unit_rent = np.array(rent) / np.array(bed)
-    length = len(address)
-    return render_template('map.html', address = address, lat = lat, lng = lng, rent=rent, unit_rent = unit_rent, bed=bed, bath=bath, url=url, length=length)
-
-def process_rent(rent):
-    for i, r in enumerate(rent):
-        if type(r) == "int":
-            pass
-        else:
-            r = str(r)
-            if r[0] == '$':
-                r = r[1:]
-            rent[i] = int(r)
-    return rent
+    return render_template('layout.html')
 
 @app.route('/recommend', methods=['POST'])
 def recommend():
     return render_template('/pages/question/question.html')
 
-@app.route('/result', methods=['POST', 'GET'])
+@app.route('/result/')
 def result():
-    if request.method == 'POST':
-        bed = request.form.getlist('bed')
-        price = request.form.getlist('price')
-        print(bed, price)
-        return render_template('result.html', bed=bed, price=price)
-    else:
-        return render_template('result.html')
+    # if request.form.getlist('')....
+    return 'result'
 
 @app.route('/user/<netid>')
 def profile(netid):
@@ -241,19 +200,18 @@ def profile(netid):
     c.execute('SELECT count(*) FROM likes WHERE NetID = ?', [netid])
     c_fetchone = c.fetchone()
     if c_fetchone[0] == 0 or c_fetchone == None:
-        location=''
+        building_name=''
         likeornot = 0
+        db.commit()
     else:
-        c.execute('SELECT location,likeornot  FROM likes WHERE NetID = ?', [netid])
+        c.execute('SELECT building_name,likeornot  FROM likes WHERE NetID = ?', [netid])
         user_likes=c.fetchall()
-        location=user_likes[0][0]
+        building_name=user_likes[0][0]
         likeornot=user_likes[0][1]
+        db.commit()
 
-    db.commit()
-    return render_template('user_profile.html', netid=netid, name=name, \
-                            gender=gender, age=age, major=major, contact=contact, \
-                            profile_pic=session['profile_pic'], \
-                            location=location,likeornot=likeornot)
+    return render_template('user_profile.html', netid=netid, name=name, gender=gender, age=age, major=major, contact=contact, profile_pic=session['profile_pic']
+    ,building_name=building_name,likeornot=likeornot)
 
 @app.route('/user/<netid>/edit', methods=['GET', 'POST'])
 def edit_user_profile(netid):
@@ -262,9 +220,9 @@ def edit_user_profile(netid):
         abort(401)
 
     if request.method == 'POST':
-        name = request.form.get('name', 'notSet')
-        gender = request.form.get('gender', 'notSet')
-        age = request.form.get('age', 0)
+        name = request.form.get('name', None)
+        gender = request.form.get('gender', None)
+        age = request.form.get('age', 'notSet')
         major = request.form.get('major', 'notSet')
         contact = request.form.get('contact', 'notSet')
 
@@ -281,12 +239,12 @@ def edit_user_profile(netid):
     else:
         return render_template("edit_user_profile.html", netid=netid, profile_pic=session['profile_pic'])
 
-@app.route('/house/profile/<location>',methods=['GET', 'POST'])
-def house_profile(location):
-    session['location']=location
+@app.route('/house/profile/<building_name>',methods=['GET', 'POST'])
+def house_profile(building_name):
+    session['building_name']=building_name
     db = get_db()
     c = db.cursor()
-    c.execute('SELECT * FROM room WHERE location = ? ', ([location]))
+    c.execute('SELECT * FROM room WHERE building_name = ? ', ([building_name]))
     user_profile = c.fetchone()
     db.commit()
 
@@ -297,29 +255,29 @@ def house_profile(location):
 
             db = get_db()
             c = db.cursor()
-            c.execute('SELECT count(*) FROM likes WHERE location = ? AND NetID = ?', [location,netid])
+            c.execute('SELECT count(*) FROM likes WHERE building_name = ? AND NetID = ?', [building_name,netid])
             c_fetchone = c.fetchone()
             if c_fetchone[0] == 0 or c_fetchone == None:
-                c.execute('INSERT INTO likes (location,NetID,likeornot) VALUES (?, ?, ?)', [location,netid,0])
+                c.execute('INSERT INTO likes (building_name,NetID,likeornot) VALUES (?, ?, ?)', [building_name,netid,0])
             else:
                 c.execute('UPDATE likes SET likeornot = ? \
-                 WHERE location = ? AND NetID = ?', [likeornot , location , netid])
+                 WHERE building_name = ? AND NetID = ?', [likeornot , building_name , netid])
             db.commit()
         else:
             netid = session['netid']
-            c.execute('SELECT count(*) FROM likes WHERE location = ? AND NetID = ?', [location,netid])
+            c.execute('SELECT count(*) FROM likes WHERE building_name = ? AND NetID = ?', [building_name,netid])
             c_fetchone = c.fetchone()
             if c_fetchone[0] == 0 or c_fetchone == None:
                 likeornot = 0
                 db.commit()
             else:
-                c.execute('SELECT likeornot FROM likes WHERE location = ? AND  NetID = ?', ([location,netid]))
+                c.execute('SELECT likeornot FROM likes WHERE building_name = ? AND  NetID = ?', ([building_name,netid]))
                 likeornot = c.fetchone()
                 likeornot = likeornot[0]
                 db.commit()
-        return render_template('house_profile.html',location=location,likeornot=likeornot)
+        return render_template('house_profile.html',building_name=building_name,likeornot=likeornot)
     else:
-        return render_template('house_profile.html',location=location)
+        return render_template('house_profile.html',building_name=building_name)
 
 
 def connect_db():
@@ -338,15 +296,8 @@ def get_db():
 
 def init_db():
     db = get_db()
-    address, bed, bath, rent, url = test()
-    lat, lng = init_house_lat_lng(address)
-    c = db.cursor()
     with app.open_resource('TenantUnionPlus.sql', mode='r') as f:
-        c.executescript(f.read())
-
-    for i, URL in enumerate(url):
-        c.execute("INSERT INTO room(location, price, bedroom_num, bath_num, url, lat, lng) VALUES (?, ?, ?, ?, ?, ?, ?)", \
-                [address[i], rent[i], bed[i], bath[i], url[i], lat[i], lng[i]])
+        db.cursor().executescript(f.read())
     db.commit()
 
 @app.cli.command('initdb')
@@ -355,61 +306,8 @@ def initdb_command():
     init_db()
     print('Initialized the database.')
 
-def init_house_lat_lng(address):
-    maps_apis = client_secret['map']
-    geo_keys = [maps_apis['api1'], maps_apis['api2']]
-
-    lat = []
-    lng = []
-    for addr in address:
-        addr_tuple = geocode(addr, geo_keys)
-        lat.append(addr_tuple[1])
-        lng.append(addr_tuple[2])
-
-    return lat, lng
-
-def update_house():
-    address, bed, bath, rent, url = test()
-    db = get_db()
-    c = db.cursor()
-    ''' TRIGGER? '''
-    # check house information deletion
-    c.execute("SELECT location, price, bedroom_num, bath_num, url from room")
-    whole_profile = c.fetchall()
-    for each_profile in whole_profile:
-        ''' TODO: may need to update 'each_profile[5]' when adding more attribute! '''
-        URL_db = each_profile[4]
-        if URL_db in url:
-            pass
-        else:   # house information was deleted from TenantUnion
-            c.execute("DELETE FROM romm WHERE url = ?", [URL_db])
-
-    # check house information update
-    for i, URL in enumerate(url):
-        c.execute("SELECT * FROM room WHERE url = ?", [URL])
-        house_profile = c.fetchone()
-        if house_profile == None or houseProfile == 0: # new house added
-            c.execute("INSERT INTO room(location, price, bedroom_num, bath_num, url) VALUES (?, ?, ?, ?, ?)", \
-                        [address[i], rent[i], bed[i], bath[i], url[i]])
-            init_house_lat_lng(address[i])
-
-        else: #check whether house price get updated
-            c.execute("SELECT price FROM room WHERE url = ?", [URL])
-            price_info = c.fetchone()[0]
-            if str(price_info) != rent[i]:
-                c.execute("UPDATE room SET price = ? WHERE url = ?", [rent[i], url[i]])
-    db.commit()
-
-
-@app.cli.command('update')
-def update_house_command():
-    '''update house profile'''
-    update_house()
-    print('House profile update successfully')
-
 @app.teardown_appcontext
 def close_db(error):
     """Closes the database again at the end of the request."""
     if hasattr(g, 'sqlite_db'):
         g.sqlite_db.close()
-#print(0)
