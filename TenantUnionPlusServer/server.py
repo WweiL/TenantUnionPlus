@@ -64,8 +64,7 @@ def login():
     people_resource = service.people()
     people_document = people_resource.get(userId='me').execute()
     
-    user_name = str(people_document['displayName']) #get user name
-    session['name'] = user_name
+
     session['profile_pic'] = str(people_document['image']['url'])
     user_email = people_document['emails'][0][u'value'] # get user email
     user_email_splitted = user_email.split('@')
@@ -76,6 +75,8 @@ def login():
     if user_email_suffix != "illinois.edu":
         flash("You should use a illinois email to log in")
         return redirect(url_for('logout'))
+    user_name = str(people_document['displayName']) #get user name
+    session['name'] = user_name
     # Save credentials back to session in case access token was refreshed.
     # ACTION ITEM: In a production app, you likely want to save these
     #              credentials in a persistent database instead.
@@ -210,9 +211,9 @@ def process_rent(rent):
             rent[i] = int(r)
     return rent
 
-@app.route('/recommend', methods=['POST'])
+@app.route('/recommend', methods=["GET", "POST"])
 def recommend():
-    return render_template('/pages/question/question.html')
+    return render_template('questions.html')
 
 @app.route('/result', methods=['POST', 'GET'])
 def result():
@@ -224,13 +225,18 @@ def result():
     else:
         return render_template('result.html')
 
-@app.route('/user/<netid>')
+@app.route('/user/<netid>', methods=["GET", "POST"])
 def profile(netid):
     if not session.get('logged_in'):
         flash("You need to log in to see your profile")
         abort(401)
     db = get_db()
     c = db.cursor()
+    
+    if request.method == 'POST':
+        address = request.form.get('delete')
+        c.execute('DELETE FROM likes WHERE location = ? AND NetID = ?', [address, netid])
+
     c.execute('SELECT * FROM student WHERE NetID = ?', [netid])
     user_profile = c.fetchone()
     name = user_profile[1]
@@ -243,17 +249,18 @@ def profile(netid):
     if c_fetchone[0] == 0 or c_fetchone == None:
         location=''
         likeornot = 0
+        db.commit()
     else:
-        c.execute('SELECT location,likeornot  FROM likes WHERE NetID = ?', [netid])
+        c.execute('SELECT location, likeornot  FROM likes WHERE NetID = ?', [netid])
         user_likes=c.fetchall()
         location=user_likes[0][0]
         likeornot=user_likes[0][1]
-    
-    db.commit()
-    return render_template('user_profile.html', netid=netid, name=name, \
-                            gender=gender, age=age, major=major, contact=contact, \
-                            profile_pic=session['profile_pic'], \
-                            location=location,likeornot=likeornot)
+        db.commit()
+        
+        return render_template('user_profile.html', netid=netid, name=name, \
+                                gender=gender, age=age, major=major, contact=contact, \
+                                profile_pic=session['profile_pic'], \
+                                user_likes=user_likes)
 
 @app.route('/user/<netid>/edit', methods=['GET', 'POST'])
 def edit_user_profile(netid):
@@ -290,23 +297,36 @@ def house_profile(location):
     user_profile = c.fetchone()
     db.commit()
 
+    netid = session['netid']
+    
     if session.get('logged_in'):
         if request.method == 'POST':
-            netid = session['netid']
-            likeornot = request.form.get('likeornot', 0)
-
-            db = get_db()
-            c = db.cursor()
-            c.execute('SELECT count(*) FROM likes WHERE location = ? AND NetID = ?', [location,netid])
-            c_fetchone = c.fetchone()
-            if c_fetchone[0] == 0 or c_fetchone == None:
-                c.execute('INSERT INTO likes (location,NetID,likeornot) VALUES (?, ?, ?)', [location,netid,0])
+            likeornot = request.form.get('likeornot', None)
+            # print(type(likeornot))
+            # print(str(likeornot))
+            if str(likeornot) != '':
+                db = get_db()
+                c = db.cursor()
+                c.execute('SELECT count(*) FROM likes WHERE location = ? AND NetID = ?', [location,netid])
+                c_fetchone = c.fetchone()
+                if c_fetchone[0] == 0 or c_fetchone == None: # if the user has not comment this page yet
+                    c.execute('INSERT INTO likes (location,NetID,likeornot) VALUES (?, ?, ?)', [location, netid, likeornot])
+                else: # if the user has commented the page
+                    c.execute('UPDATE likes SET likeornot = ? \
+                                WHERE location = ? AND NetID = ?', [likeornot , location , netid])
+                db.commit()
             else:
-                c.execute('UPDATE likes SET likeornot = ? \
-                 WHERE location = ? AND NetID = ?', [likeornot , location , netid])
-            db.commit()
-        else:
-            netid = session['netid']
+                c.execute('SELECT count(*) FROM likes WHERE location = ? AND NetID = ?', [location,netid])
+                c_fetchone = c.fetchone()
+                if c_fetchone[0] == 0 or c_fetchone == None:
+                    likeornot = 0
+                    db.commit()
+                else:
+                    c.execute('SELECT likeornot FROM likes WHERE location = ? AND  NetID = ?', ([location,netid]))
+                    likeornot = c.fetchone()
+                    likeornot = likeornot[0]
+                    db.commit()
+        else: # GET
             c.execute('SELECT count(*) FROM likes WHERE location = ? AND NetID = ?', [location,netid])
             c_fetchone = c.fetchone()
             if c_fetchone[0] == 0 or c_fetchone == None:
