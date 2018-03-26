@@ -1,36 +1,152 @@
-
- {% extends "layout.html" %}
+{% extends "layout.html" %}
 {% block body %}
- <section class="jumbotron  jumbotron-vertically-center text-center">
-     <section class="card card-1">
-     <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+ <section class="jumbotron  jumbotron-vertically-center text-center bg-secondary">
+     <section class="card card-1 bg-dark" style="height: 450px; width: 800px">
+     <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel" data-interval="false" wrap="false">
          <ol class="carousel-indicators">
              <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
              <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
              <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+             <li data-target="#carouselExampleIndicators" data-slide-to="3"></li>
+             <li data-target="#carouselExampleIndicators" data-slide-to="4"></li>
+             <li data-target="#carouselExampleIndicators" data-slide-to="5"></li>
+             <li data-target="#carouselExampleIndicators" data-slide-to="6"></li>
          </ol>
-    <div class="carousel-inner">
+
+  <div class="carousel-inner text-light" role="listbox">
     <div class="carousel-item active">
-            Look at me! aaasaasfasdfasfasdfasfasfasdf
-            aaasaasfasdfasfasdfasfasfasdfasdfasf
-            asdfasfasfas
+      <h> What year are you? </h>
+      <div>
+        <input type="radio"  name="year" value="freshman">
+        <label for="subscribeNews">Freshman</label>
+      </div>
+      <div>
+        <input type="radio"  name="year" value="sophomore">
+        <label for="subscribeNews">Sophomore</label>
+      </div>
+      <div>
+        <input type="radio"  name="year" value="junior">
+        <label for="subscribeNews">Junior</label>
+      </div>
+      <div>
+        <input type="radio"  name="year" value="senior">
+        <label for="subscribeNews">Senior</label>
+      </div>
     </div>
+
     <div class="carousel-item">
-      <img class="d-block w-100" src="..." alt="Second slide">
+      <h> Where do you go to classes most often? </h>
+      <div>
+        <input type="radio"  name="direction" value="northern">
+        <label for="subscribeNews">Northern campus</label>
+      </div>
+      <div>
+        <input type="radio"  name="direction" value="southern">
+        <label for="subscribeNews">Southern campus</label>
+      </div>
     </div>
+
     <div class="carousel-item">
-      <img class="d-block w-100" src="..." alt="Third slide">
+      <h> How oftern do you go to the gym? </h>
+      <div>
+        <input type="radio"  name="gym" value="one">
+        <label for="subscribeNews">Once a week</label>
+      </div>
+      <div>
+        <input type="radio"  name="gym" value="two">
+        <label for="subscribeNews">Twice a week</label>
+      </div>
+      <div>
+        <input type="radio"  name="gym" value="three">
+        <label for="subscribeNews">Three times a week</label>
+      </div>
+      <div>
+        <input type="radio"  name="subscribe" value="more">
+        <label for="subscribeNews">More than three times a week</label>
+      </div>
     </div>
+
+    <div class="carousel-item">
+      <h> Do you prefer cooking or going to the restaurant? </h>
+      <div>
+        <input type="radio"  name="cook" value="cooking">
+        <label for="subscribeNews">Cooking</label>
+      </div>
+      <div>
+        <input type="radio"  name="cook" value="restaurant">
+        <label for="subscribeNews">Restaurant</label>
+      </div>
     </div>
-        <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+
+    <div class="carousel-item">
+      <h> Do you drive a car or take the bus to class? </h>
+      <div>
+        <input type="radio"  name="commute" value="car">
+        <label for="subscribeNews">Car</label>
+      </div>
+      <div>
+        <input type="radio"  name="commute" value="bus">
+        <label for="subscribeNews">Bus</label>
+      </div>
+    </div>
+
+    <div class="carousel-item">
+      <h> Do you like to study at home or in the library? </h>
+      <div>
+        <input type="radio"  name="study" value="home">
+        <label for="subscribeNews">Home</label>
+      </div>
+      <div>
+        <input type="radio"  name="study" value="library">
+        <label for="subscribeNews">Library</label>
+      </div>
+    </div>
+
+    <div class="carousel-item">
+      <h> Do you mind having a pet at home? </h>
+      <div>
+        <input type="radio"  name="pet" value="yes">
+        <label for="subscribeNews">Yes, I do mind</label>
+      </div>
+      <div>
+        <input type="radio"  name="pet" value="no">
+        <label for="subscribeNews">No, I don't mind</label>
+      </div>
+    </div>
+  </div>
+
+
+
+        <a class="carousel-control-prev text-success" href="#carouselExampleIndicators" role="button" data-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"> </span>
             <span class="sr-only">Previous</span>
         </a>
-        <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+
+        <a class="carousel-control-next text-success" href="#carouselExampleIndicators" role="button" data-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="false"> </span>
             <span class="sr-only">Next</span>
         </a>
     </div>
     </section>
+
 </section>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+<script>
+$("input:radio").on('click', function() {
+  // in the handler, 'this' refers to the box clicked on
+  var $box = $(this);
+  if ($box.is(":checked")) {
+    // the name of the box is retrieved using the .attr() method
+    // as it is assumed and expected to be immutable
+    var group = "input:radio[name='" + $box.attr("name") + "']";
+    // the checked state of the group/box on the other hand will change
+    // and the current value is retrieved using .prop() method
+    $(group).prop("checked", false);
+    $box.prop("checked", true);
+  } else {
+    $box.prop("checked", false);
+  }
+});
+</script>
 {% endblock %}

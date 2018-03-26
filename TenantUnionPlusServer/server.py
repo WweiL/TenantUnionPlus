@@ -213,17 +213,59 @@ def process_rent(rent):
 
 @app.route('/recommend', methods=["GET", "POST"])
 def recommend():
-    return render_template('questions.html')
-
+    if request.method == "GET":
+        return render_template('questions.html')
+    else: # POST
+        year = request.form.get('year')
+        direction = request.form.get('direction')
+        gym = request.form.get('gym')
+        cook = request.form.get('cook')
+        commute = request.form.get('commute')
+        study = request.form.get('study')
+        pet = request.form.get('pet')
+        # result should be a list of (lat, lng)
+        result = recommend_result(year, direction, gym, cook, commute, study, pet)
+        return redirect(url_for('result'), locations=result)
+        
+        
+        
 @app.route('/result', methods=['POST', 'GET'])
-def result():
+def result(locations):
     if request.method == 'POST':
         bed = request.form.getlist('bed')
         price = request.form.getlist('price')
         print(bed, price)
         return render_template('result.html', bed=bed, price=price)
     else:
-        return render_template('result.html')
+        db = get_db()
+        c = db.cursor()
+        whole_profile = []
+        for latLng in locations:
+            c.execute("SELECT location, price, bedroom_num, bath_num, url, lat, lng from room WHERE lat = ? AND lng = ?", [latLng[0], latLng[1]])
+            whole_profile.append(c.fetchone())
+
+        address = []
+        bed = []
+        bath = []
+        rent = []
+        url = []
+        lat = []
+        lng = []
+
+        for each_profile in whole_profile:
+            ''' TODO: may need to update 'each_profile[5]' when adding more attribute! '''
+            address.append(each_profile[0])
+            rent.append(each_profile[1])
+            bed.append(each_profile[2])
+            bath.append(each_profile[3])
+            url.append(each_profile[4])
+            lat.append(each_profile[5])
+            lng.append(each_profile[6])
+            
+        rent = process_rent(rent)
+        unit_rent = np.array(rent) / np.array(bed)
+        length = len(address)
+        return render_template('result.html', address = address, lat = lat, lng = lng, rent=rent, unit_rent = unit_rent, bed=bed, bath=bath, url=url, length=length)
 
 @app.route('/user/<netid>', methods=["GET", "POST"])
 def profile(netid):
@@ -296,10 +338,9 @@ def house_profile(location):
     c.execute('SELECT * FROM room WHERE location = ? ', ([location]))
     user_profile = c.fetchone()
     db.commit()
-
-    netid = session['netid']
     
     if session.get('logged_in'):
+        netid = session['netid']
         if request.method == 'POST':
             likeornot = request.form.get('likeornot', None)
             # print(type(likeornot))

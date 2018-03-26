@@ -52,6 +52,6 @@ drop table if exists likes;
 create table likes (
   location varchar(20) not NULL default 'home',
   NetID varchar(40) not NULL default 'siebel999',
-  likeornot integer(1) not NULL default 0,
+  likeornot integer(1) default -1,
   PRIMARY KEY (location, NetID)
 );

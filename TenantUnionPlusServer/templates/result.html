@@ -120,15 +120,87 @@
                         <div id="map"></div>
                         <script>
                           function initMap() {
-                            var uluru = {lat: 40.1138028, lng: -88.2270992};
+                            var union = {lat: 40.1094592, lng: -88.2283148};
                             var map = new google.maps.Map(document.getElementById('map'), {
                               zoom: 16,
-                              center: uluru
+                              center: union
                             });
                             var marker = new google.maps.Marker({
-                              position: uluru,
+                              position: union,
                               map: map
                             });
+
+                            var prev_infowindow = false;
+
+                            {% for i in range(length) %}
+
+                            var marker{{i}} = new google.maps.Marker({
+                                position: new google.maps.LatLng( {{ lat[i] }}, {{ lng[i] }} ),
+                                map: map
+                            });
+
+                            var contentString{{i}} = '<div id="content">'+
+                               '<h4 id="firstHeading" class="firstHeading"> {{ address[i] }} </h4>'+
+                               '<div id="bodyContent">'+
+                               '<p><b>Rent:</b>  {{ rent[i] }} </p>'+
+                               '<p><b>Rent(per person):</b>  {{ unit_rent[i] }} </p>'+
+                               '<p><b>Beds:</b>  {{ bed[i] }} </p>'+
+                               '<p><b>Baths:</b>  {{ bath[i] }} </p>'+
+                               '<a href=" {{ url_for('house_profile', location=address[i]) }} "> View profile </a>'+
+                               '</div>'+
+                               '</div>';
+
+                            var infowindow{{i}} = new google.maps.InfoWindow({
+                              content: contentString{{i}}
+                            });
+                            
+                            marker{{i}}.addListener('click', function() {
+                              if( prev_infowindow ) {
+                                prev_infowindow.close();
+                              }
+                              prev_infowindow = infowindow{{i}}
+                              infowindow{{i}}.open(map, marker{{i}});
+                              
+                            });
+                            
+
+                            {% endfor %}
+                            
+                            
+                            var contentString = '<div id="content">'+
+                               '<h1 id="firstHeading" class="firstHeading"> ' + address[i] + '</h1>'+
+                               '</div>'+
+                               '</div>';
+
+                            var infowindow = new google.maps.InfoWindow({
+                              content: contentString
+                            });
+                            
+                            marker.addListener('click', function() {
+                              infowindow.open(map, marker);
+                            });
+
+
+                            var contentString = '<div id="content">'+
+                               '<h1 id="firstHeading" class="firstHeading">union</h1>'+
+                               '<div id="bodyContent">'+
+                               '<p><b>Price: </b>, </p>'+
+                               '</div>'+
+                               '</div>';
+
+                           var infowindow = new google.maps.InfoWindow({
+                             content: contentString
+                           });
+                           
+                           var marker = new google.maps.Marker({
+                             position: union,
+                             map: map,
+                             title: 'Illinois Union'
+                           });
+                           marker.addListener('click', function() {
+                             infowindow.open(map, marker);
+                           });
+                           
                           }
                         </script>
                         <script async defer
