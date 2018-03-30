@@ -2,7 +2,10 @@
 Web project for CS411. Helps students find ideal apartment.
 
 # To start:
-0. Setup venv
+0. run
+    `source .bashrc`
+    `export LC_ALL=en_US.utf-8`
+    `export LANG=en_US.utf-8`
 1. Goto TenantUnionPlus
 2. run
     `pip install -r requirements.txt`
