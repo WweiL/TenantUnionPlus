@@ -1,4 +1,4 @@
-DROP TABLE if exists restaurant;
+DROP TABLE if exists library;
 CREATE TABLE library (
   building_name varchar(20) not NULL 'home',
   lat FLOAT(20) NOT NULL,

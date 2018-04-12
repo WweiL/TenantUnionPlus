@@ -8,12 +8,25 @@ from flask import Flask, request, session, g, redirect, url_for, abort, \
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
+from googleplaces import GooglePlaces, types, lang
 from readlocation import geocode
 from crawler import test
 import numpy as np
 # from TenantUnionPlus import *
 # CSS: https://stackoverflow.com/questions/22259847/application-not-picking-up-css-file-flask-python
-     
+# http://flask.pocoo.org/docs/0.12/tutorial/setup/#tutorial-setup
+# http://flask.pocoo.org/docs/0.12/patterns/packages/#larger-applications
+# http://flask.pocoo.org/docs/0.12/appcontext/#app-context
+# http://flask.pocoo.org/docs/0.12/testing/#testing
+# http://flask.pocoo.org/docs/0.12/quickstart/#sessions
+# https://bootsnipp.com/snippets/featured/average-user-rating-rating-breakdown
+# https://demos.creative-tim.com/material-kit/index.html?_ga=2.196049324.1610237639.1521848104-1497747171.1521848104
+
+
+# http://flask.pocoo.org/docs/0.10/deploying/cgi/
+# http://thelazylog.com/install-python-as-local-user-on-linux/
+# https://medium.com/@dorukgezici/how-to-setup-python-flask-app-on-shared-hosting-without-root-access-e40f95ccc819
+# Also add a search path to pin selected point onto map
 app = Flask(__name__) # create the application instance
 app.config.from_object(__name__) # load config from this file
 
@@ -170,13 +183,28 @@ def credentials_to_dict(credentials):
 def home():
     return render_template('home.html')
 
-@app.route('/map')
+@app.route('/map', methods = ["POST", "GET"])
 def map():
     db = get_db()
     c = db.cursor()
-    c.execute("SELECT location, price, bedroom_num, bath_num, url, lat, lng from room")
-    whole_profile = c.fetchall()
+    bed_post = []
+    price_post = []
+    if request.method == 'GET':
+        c.execute("SELECT location, price, bedroom_num, bath_num, url, lat, lng from room")
+    else:
+        bed_post = request.form.getlist('bed_post')
+        price_post = request.form.getlist('price_post')
+        cmd = "SELECT location, price, bedroom_num, bath_num, url, lat, lng from room WHERE "
+        for i in bed_post:
+            cmd = cmd + "bedroom_num = " + str(i) + " OR "
+        for i in price_post:
+            # TODO: change price to unit_price!
+            cmd = cmd + "(price >= " + i + " AND price <= " + i + "+200) OR "
+        cmd = cmd[:-3]
+        print (cmd)
+        c.execute(cmd)
 
+    whole_profile = c.fetchall()
     address = []
     bed = []
     bath = []
@@ -198,8 +226,8 @@ def map():
     rent = process_rent(rent)
     unit_rent = np.array(rent) / np.array(bed)
     length = len(address)
-    return render_template('map.html', address = address, lat = lat, lng = lng, rent=rent, unit_rent = unit_rent, bed=bed, bath=bath, url=url, length=length)
-
+    return render_template('map.html', address = address, lat = lat, lng = lng, rent=rent, unit_rent = unit_rent, bed=bed, bath=bath, url=url, length=length, bed_post=bed_post, price_post=price_post)
+    
 def process_rent(rent):
     for i, r in enumerate(rent):
         if type(r) == "int":
@@ -225,12 +253,28 @@ def recommend():
         pet = request.form.get('pet')
         # result should be a list of (lat, lng)
         result = recommend_result(year, direction, gym, cook, commute, study, pet)
-        return redirect(url_for('result'), locations=result)
+        # return redirect(url_for('result'), locations=result)
+        return redirect(url_for('result'))
         
         
-        
+def recommend_result(year, direction, gym, cook, commute, study, pet):
+    # get all lat/lngs
+    db = get_db()
+    c = db.cursor()
+    c.execute("SELECT lat, lng from room")
+    latlng = c.fetchall()
+    
+    crce = np.array([40.1046767,-88.2239516])
+    arc = np.array([40.1015275,-88.2385425])
+    green_st = np.array([40.1101803,-88.2308469])
+    # or nearby search https://developers.google.com/places/web-service/search#PlaceSearchRequests
+    library = np.array([])
+    # return 20( or: inside knn() define a max value, return samples less than max) samples according to choice
+
+    
 @app.route('/result', methods=['POST', 'GET'])
-def result(locations):
+def result():
+#def result(locations):
     if request.method == 'POST':
         bed = request.form.getlist('bed')
         price = request.form.getlist('price')
@@ -408,6 +452,16 @@ def init_db():
     for i, URL in enumerate(url):
         c.execute("INSERT INTO room(location, price, bedroom_num, bath_num, url, lat, lng) VALUES (?, ?, ?, ?, ?, ?, ?)", \
                 [address[i], rent[i], bed[i], bath[i], url[i], lat[i], lng[i]])
+    
+    name, lat, lng = init_facilities_lat_lng('library')
+    for i, _ = enumerate(name):
+        c.execute("INSERT INTO library(name, lat, lng) VALUES (?, ?, ?)", \
+                name[i], lat[i], lng[i])
+
+    name, lat, lng = init_facilities_lat_lng('restaurant')
+    for i, _ = enumerate(name):
+        c.execute("INSERT INTO restaurant(name, lat, lng) VALUES (?, ?, ?)", \
+                name[i], lat[i], lng[i])
     db.commit()
 
 @app.cli.command('initdb')
@@ -428,6 +482,20 @@ def init_house_lat_lng(address):
         lng.append(addr_tuple[2])
 
     return lat, lng
+
+def init_facilities_lat_lng(facility):
+    union_latlng = {"lat": 40.1094592, "lng": -88.2283148}
+    google_places = GooglePlaces(client_secret["map"]["api1"])
+    query_result = google_places.nearby_search(radius=2000, lat_lng = union_latlng, type=facility)
+    name = []
+    lat = []
+    lng = []
+    for place in query_result.places:
+        name.append(place.name)
+        lat.append(float(place.geo_location[u'lat']))
+        lng.append(float(place.geo_location[u'lng']))
+    return name, lat, lng
+    # https://github.com/slimkrazy/python-google-places
 
 def update_house():
     address, bed, bath, rent, url = test()
