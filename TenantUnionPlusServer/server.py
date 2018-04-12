@@ -454,14 +454,14 @@ def init_db():
                 [address[i], rent[i], bed[i], bath[i], url[i], lat[i], lng[i]])
     
     name, lat, lng = init_facilities_lat_lng('library')
-    for i, _ = enumerate(name):
-        c.execute("INSERT INTO library(name, lat, lng) VALUES (?, ?, ?)", \
-                name[i], lat[i], lng[i])
+    for i, _ in enumerate(name):
+        c.execute("INSERT INTO library(building_name, lat, lng) VALUES (?, ?, ?)", \
+                [name[i], lat[i], lng[i]])
 
     name, lat, lng = init_facilities_lat_lng('restaurant')
-    for i, _ = enumerate(name):
-        c.execute("INSERT INTO restaurant(name, lat, lng) VALUES (?, ?, ?)", \
-                name[i], lat[i], lng[i])
+    for i, _ in enumerate(name):
+        c.execute("INSERT INTO restaurant(building_name, lat, lng) VALUES (?, ?, ?)", \
+                [name[i], lat[i], lng[i]])
     db.commit()
 
 @app.cli.command('initdb')

@@ -55,3 +55,18 @@ create table likes (
   likeornot integer(1) default -1,
   PRIMARY KEY (location, NetID)
 );
+
+DROP TABLE if exists library;
+CREATE TABLE library (
+  building_name varchar(20) NOT NULL default 'main lib',
+  lat FLOAT(20) NOT NULL,
+  lng FLOAT(20) NOT NULL,
+  PRIMARY KEY (building_name)
+);
+
+DROP TABLE if exists restaurant;
+CREATE TABLE restaurant (
+  building_name varchar(20) NOT NULL default 'DiaoSiZhiJia',
+  lat FLOAT(20) NOT NULL,
+  lng FLOAT(20) NOT NULL
+);
