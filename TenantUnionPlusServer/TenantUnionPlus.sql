@@ -48,10 +48,11 @@ create table gym (
   PRIMARY KEY (building_name)
 );
 
-drop table if exists likes;
+DROP TABLE if exists likes;
 create table likes (
   location varchar(20) not NULL default 'home',
   NetID varchar(40) not NULL default 'siebel999',
+  word char(140) default 'like',
   likeornot integer(1) default -1,
   PRIMARY KEY (location, NetID)
 );

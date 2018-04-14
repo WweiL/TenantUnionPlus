@@ -71,7 +71,11 @@
                         </tr>
                       </tbody>
                     </table>
-                    
+                    <h2> AverageRank </h2>
+                    <div class="col">
+                        <div class="card">{{avgscore}}</div>
+                    <div class="col">
+                        <div class="card">{{count}}have ranked this apartment</div>
                     {% if not session['logged_in'] %}
 
 
@@ -79,17 +83,31 @@
                     <h2> YourCurrentRank </h2>
                     <div class="col">
                         <div class="card">{{likeornot}}</div>
-
+                    <h2> YourCurrentComment </h2>
+                    <div class="col">
+                        <div class="card">{{word}}</div>
                     </div>
                     <div class="col-sm-8">
-                        <form action="{{ url_for('house_profile', location=session['location']) }}" method="post">
+                        <form action="{{ url_for('house_profile', location=session['location']) }}" method="post" id="userComment">
                         <ul class="list-group">
                             <li class="list-group-item"> rank it from 0 to 5: <input name='likeornot' type='number'> </li>
+                          </ul>
+                        <div class="form-group">
+                            <label for="UserWrittenComment">Write Comment</label>
+                            <textarea class="form-control" name= "word" form="userComment" rows="3">{{word}}</textarea>
+                          </div>
+                        <ul class="list-group">
                               <button type="submit" class="btn btn-primary float-right"> Submit </button>
                           </ul>
                           </form>
                     </div>
+
                     {% endif %}
+                    {% for allcomment in allcomments %}
+                    <li class="list-group-item"> {{ allcomment[1] }}gives{{ allcomment[3] }}score for this apartment, his comment is{{ allcomment[2] }}
+
+                    </li>
+                    {% endfor %}
                     <!-- Comment -->
                     <div class="card">
                       <div class="card-header">Comments</div>

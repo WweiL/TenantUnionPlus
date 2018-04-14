@@ -165,9 +165,6 @@ def oauth2callback():
 
     return redirect(url_for('login'))
 
-
-
-
 def credentials_to_dict(credentials):
     return {'token': credentials.token,
           'refresh_token': credentials.refresh_token,
@@ -175,9 +172,6 @@ def credentials_to_dict(credentials):
           'client_id': credentials.client_id,
           'client_secret': credentials.client_secret,
           'scopes': credentials.scopes}
-
-
-
 
 @app.route('/')
 def home():
@@ -382,11 +376,12 @@ def house_profile(location):
     c.execute('SELECT * FROM room WHERE location = ? ', ([location]))
     user_profile = c.fetchone()
     db.commit()
-    
+
     if session.get('logged_in'):
         netid = session['netid']
         if request.method == 'POST':
             likeornot = request.form.get('likeornot', None)
+            word = request.form.get('word',None)
             # print(type(likeornot))
             # print(str(likeornot))
             if str(likeornot) != '':
@@ -395,36 +390,62 @@ def house_profile(location):
                 c.execute('SELECT count(*) FROM likes WHERE location = ? AND NetID = ?', [location,netid])
                 c_fetchone = c.fetchone()
                 if c_fetchone[0] == 0 or c_fetchone == None: # if the user has not comment this page yet
-                    c.execute('INSERT INTO likes (location,NetID,likeornot) VALUES (?, ?, ?)', [location, netid, likeornot])
+                    c.execute('INSERT INTO likes (location,NetID,word,likeornot) VALUES (?, ?, ?, ?)', [location, netid, word, likeornot])
                 else: # if the user has commented the page
-                    c.execute('UPDATE likes SET likeornot = ? \
-                                WHERE location = ? AND NetID = ?', [likeornot , location , netid])
+                    c.execute('UPDATE likes SET likeornot = ?, word = ?\
+                                WHERE location = ? AND NetID = ?', [likeornot , word, location , netid])
                 db.commit()
             else:
                 c.execute('SELECT count(*) FROM likes WHERE location = ? AND NetID = ?', [location,netid])
                 c_fetchone = c.fetchone()
                 if c_fetchone[0] == 0 or c_fetchone == None:
                     likeornot = 0
+                    word = ''
                     db.commit()
                 else:
-                    c.execute('SELECT likeornot FROM likes WHERE location = ? AND  NetID = ?', ([location,netid]))
-                    likeornot = c.fetchone()
-                    likeornot = likeornot[0]
+                    c.execute('SELECT likeornot, word FROM likes WHERE location = ? AND  NetID = ?', ([location,netid]))
+                    comment = c.fetchone()
+                    likeornot = comment[0]
+                    word = comment[1]
                     db.commit()
         else: # GET
             c.execute('SELECT count(*) FROM likes WHERE location = ? AND NetID = ?', [location,netid])
             c_fetchone = c.fetchone()
             if c_fetchone[0] == 0 or c_fetchone == None:
                 likeornot = 0
+                word = ''
                 db.commit()
             else:
-                c.execute('SELECT likeornot FROM likes WHERE location = ? AND  NetID = ?', ([location,netid]))
-                likeornot = c.fetchone()
-                likeornot = likeornot[0]
+                c.execute('SELECT likeornot, word FROM likes WHERE location = ? AND  NetID = ?', ([location,netid]))
+                comment = c.fetchone()
+                likeornot = comment[0]
+                word = comment[1]
                 db.commit()
-        return render_template('house_profile.html',location=location,likeornot=likeornot)
+        c.execute('SELECT * FROM likes WHERE location = ?', ([location]))
+        allcomments=c.fetchall()
+        db.commit()
+        c.execute('SELECT AVG(likeornot) FROM likes WHERE location = ?', ([location]))
+        avgscore=c.fetchone()
+        avgscore=avgscore[0]
+        db.commit()
+        c.execute('SELECT count(*)  FROM likes WHERE location = ?', ([location]))
+        count=c.fetchone()
+        count=count[0]
+        db.commit()
+        return render_template('house_profile.html',location=location,likeornot=likeornot,word=word,allcomments=allcomments,avgscore=avgscore,count=count)
     else:
-        return render_template('house_profile.html',location=location)
+        c.execute('SELECT * FROM likes WHERE location = ?', ([location]))
+        allcomments=c.fetchall()
+        db.commit()
+        c.execute('SELECT AVG(likeornot) FROM likes WHERE location = ?', ([location]))
+        avgscore=c.fetchone()
+        avgscore=avgscore[0]
+        db.commit()
+        c.execute('SELECT count(*)  FROM likes WHERE location = ?', ([location]))
+        count=c.fetchone()
+        count=count[0]
+        db.commit()
+        return render_template('house_profile.html',location=location,allcomments=allcomments,avgscore=avgscore,count=count)
 
 
 def connect_db():
@@ -486,7 +507,7 @@ def init_house_lat_lng(address):
 def init_facilities_lat_lng(facility):
     union_latlng = {"lat": 40.1094592, "lng": -88.2283148}
     google_places = GooglePlaces(client_secret["map"]["api1"])
-    query_result = google_places.nearby_search(radius=2000, lat_lng = union_latlng, type=facility)
+    query_result = google_places.nearby_search(radius=2000 if facility == 'library' else 1000, lat_lng = union_latlng, type=facility)
     name = []
     lat = []
     lng = []
