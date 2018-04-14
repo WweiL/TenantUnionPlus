@@ -10,7 +10,7 @@ import google_auth_oauthlib.flow
 import googleapiclient.discovery
 from googleplaces import GooglePlaces, types, lang
 from readlocation import geocode
-from crawler import test
+from crawler import get_house_info, test
 import numpy as np
 # from TenantUnionPlus import *
 # CSS: https://stackoverflow.com/questions/22259847/application-not-picking-up-css-file-flask-python
@@ -326,6 +326,8 @@ def profile(netid):
     contact = user_profile[6]
     c.execute('SELECT count(*) FROM likes WHERE NetID = ?', [netid])
     c_fetchone = c.fetchone()
+    
+    user_likes = []
     if c_fetchone[0] == 0 or c_fetchone == None:
         location=''
         likeornot = 0
@@ -337,10 +339,10 @@ def profile(netid):
         likeornot=user_likes[0][1]
         db.commit()
         
-        return render_template('user_profile.html', netid=netid, name=name, \
-                                gender=gender, age=age, major=major, contact=contact, \
-                                profile_pic=session['profile_pic'], \
-                                user_likes=user_likes)
+    return render_template('user_profile.html', netid=netid, name=name, \
+                            gender=gender, age=age, major=major, contact=contact, \
+                            profile_pic=session['profile_pic'], \
+                            user_likes=user_likes)
 
 @app.route('/user/<netid>/edit', methods=['GET', 'POST'])
 def edit_user_profile(netid):
@@ -464,15 +466,17 @@ def get_db():
 
 def init_db():
     db = get_db()
-    address, bed, bath, rent, url = test()
+    url, address, bed, bath, rent, electricity, water, internet, furnished, tv, dishwasher = get_house_info()
+    # address, bed, bath, rent, url = test()
+    # print(address)
     lat, lng = init_house_lat_lng(address)
     c = db.cursor()
     with app.open_resource('TenantUnionPlus.sql', mode='r') as f:
         c.executescript(f.read())
 
-    for i, URL in enumerate(url):
-        c.execute("INSERT INTO room(location, price, bedroom_num, bath_num, url, lat, lng) VALUES (?, ?, ?, ?, ?, ?, ?)", \
-                [address[i], rent[i], bed[i], bath[i], url[i], lat[i], lng[i]])
+    for i, URL in enumerate(address):
+        c.execute("INSERT INTO room(electricity, water, internet, furnished, tv, dishwasher, location, price, bedroom_num, bath_num, url, lat, lng) VALUES (?, ?, ?, ?, ?, ?, ?)", \
+                [electricity[i], water[i], internet[i], furnished[i], tv[i], dishwasher[i], address[i], rent[i], bed[i], bath[i], url[i], lat[i], lng[i]])
     
     name, lat, lng = init_facilities_lat_lng('library')
     for i, _ in enumerate(name):
