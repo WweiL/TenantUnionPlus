@@ -1,114 +1,234 @@
 {% extends "layout.html" %}
 {% block body %}
-  <body>
-    <h3>Browse the map</h3>
-    <div id="map"></div>
-    <script>
-      function initMap() {
-        var union = {lat: 40.1094592, lng: -88.2283148};
-        var map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 16,
-          center: union
-        });
-        var marker = new google.maps.Marker({
-          position: union,
-          map: map
-        });
+      <main role="main">
+                      <h3>Browse the map</h3>
+          <section class="jumbotron text-center">
 
-        var prev_infowindow = false;
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-2">
+                      <h1> Refine by </h1>
+                      <h4> Bedroom </h4>
+                        <form action=' {{ url_for('map') }}' method="post">
+                            <div class="form-check">
+                              {% if not '1' in bed_post %}
+                              <input class="form-check-input" type="checkbox" value="1" id="studio" name="bed_post">
+                              {% else %}
+                              <input class="form-check-input" type="checkbox" value="1" id="studio" name="bed_post" cheked>
+                              {% endif %}
+                              <label class="form-check-label" for="studio">
+                                Studio
+                              </label>
+                            </div>
+                            <!-- <div class="form-check">
+                              {% if not '1' in bed_post %}
+                              <input class="form-check-input" type="checkbox" value="1" id="oneBed" name="bed_post">
+                              {% else %}
+                              <input class="form-check-input" type="checkbox" value="1" id="oneBed" name="bed_post" checked>
+                              {% endif %}
+                              <label class="form-check-label" for="oneBed">
+                                One bedroom
+                              </label>
+                            </div> -->
+                            <div class="form-check">
+                              {% if not '2' in bed_post %}
+                              <input class="form-check-input" type="checkbox" value="2" id="twoBed" name="bed_post">
+                              {% else %}
+                              <input class="form-check-input" type="checkbox" value="2" id="twoBed" name="bed_post" checked>
+                              {% endif %}
+                              <label class="form-check-label" for="twoBed">
+                                Two bedrooms
+                              </label>
+                            </div>
+                            <div class="form-check">
+                              {% if not '3' in bed_post %}
+                              <input class="form-check-input" type="checkbox" value="3" id="threeBed" name="bed_post">
+                              {% else %}
+                              <input class="form-check-input" type="checkbox" value="3" id="threeBed" name="bed_post" checked>
+                              {% endif %}
+                              <label class="form-check-label" for="threeBed">
+                                Three bedrooms
+                              </label>
+                            </div>
+                            <div class="form-check">
+                              {% if not '4' in bed_post %}
+                              <input class="form-check-input" type="checkbox" value="4" id="fourBed" name="bed_post">
+                              {% else %}
+                              <input class="form-check-input" type="checkbox" value="4" id="fourBed" name="bed_post" checked>
+                              {% endif %}
+                              <label class="form-check-label" for="fourBed">
+                                Four bedrooms
+                              </label>
+                            </div>
 
-        {% for i in range(length) %}
 
-        var marker{{i}} = new google.maps.Marker({
-            position: new google.maps.LatLng( {{ lat[i] }}, {{ lng[i] }} ),
-            map: map
-        });
+                        <h4> Price range </h4>
+                            <div class="form-check">
+                                {% if not '300' in price_post %}
+                                <input type="checkbox" class="form-check-input" value="300" id="300" name="price_post">
+                                {% else %}
+                                <input type="checkbox" class="form-check-input" value="300" id="300" name="price_post" checked>
+                                {% endif %}
+                                <label class="form-check-label" for="300">
+                                    $300-500
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                {% if not '500' in price_post %}
+                                <input type="checkbox" class="form-check-input" value="500" id="500" name="price_post">
+                                {% else %}
+                                <input type="checkbox" class="form-check-input" value="500" id="500" name="price_post" checked>
+                                {% endif %}
+                                <label class="form-check-label" for="500">
+                                    $500-700
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                {% if not '700' in price_post %}
+                                <input type="checkbox" class="form-check-input" value="700" id="700" name="price_post">
+                                {% else %}
+                                <input type="checkbox" class="form-check-input" value="700" id="700" name="price_post" checked>
+                                {% endif %}
+                                <label class="form-check-label" for="700">
+                                    $700-900
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                {% if not '900' in price_post %}
+                                <input type="checkbox" class="form-check-input" value="900" id="900" name="price_post">
+                                {% else %}
+                                <input type="checkbox" class="form-check-input" value="900" id="900" name="price_post" checked>
+                                {% endif %}
+                                <label class="form-check-label" for="900">
+                                    $900-1100
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                {% if not '1100' in price_post %}
+                                <input type="checkbox" class="form-check-input" value="1100" id="1100" name="price_post">
+                                {% else %}
+                                <input type="checkbox" class="form-check-input" value="1100" id="1100" name="price_post" checked>
+                                {% endif %}
+                                <label class="form-check-label" for="1100">
+                                    $1100-1300
+                                </label>
+                            </div>
 
-        var contentString{{i}} = '<div id="content">'+
-           '<h4 id="firstHeading" class="firstHeading"> {{ address[i] }} </h4>'+
-           '<div id="bodyContent">'+
-           '<p><b>Rent:</b>  {{ rent[i] }} </p>'+
-           '<p><b>Rent(per person):</b>  {{ unit_rent[i] }} </p>'+
-           '<p><b>Beds:</b>  {{ bed[i] }} </p>'+
-           '<p><b>Baths:</b>  {{ bath[i] }} </p>'+
-           '<a href=" {{ url_for('house_profile', location=address[i]) }} "> View profile </a>'+
-           '</div>'+
-           '</div>';
+                          <br>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                    </div>
+                    <div class="col-md-10">
+                        <div id="map"></div>
+                        <script>
+                          function initMap() {
+                            var union = {lat: 40.1094592, lng: -88.2283148};
+                            var map = new google.maps.Map(document.getElementById('map'), {
+                              zoom: 16,
+                              center: union
+                            });
+                            var marker = new google.maps.Marker({
+                              position: union,
+                              map: map
+                            });
 
-        var infowindow{{i}} = new google.maps.InfoWindow({
-          content: contentString{{i}}
-        });
+                            var prev_infowindow = false;
+
+                            {% for i in range(length) %}
+
+                            var marker{{i}} = new google.maps.Marker({
+                                position: new google.maps.LatLng( {{ lat[i] }}, {{ lng[i] }} ),
+                                map: map
+                            });
+
+                            var contentString{{i}} = '<div id="content">'+
+                               '<h4 id="firstHeading" class="firstHeading"> {{ address[i] }} </h4>'+
+                               '<div id="bodyContent">'+
+                               '<p><b>Rent:</b>  {{ rent[i] }} </p>'+
+                               '<p><b>Rent(per person):</b>  {{ unit_rent[i] }} </p>'+
+                               '<p><b>Beds:</b>  {{ bed[i] }} </p>'+
+                               '<p><b>Baths:</b>  {{ bath[i] }} </p>'+
+                               '<a href=" {{ url_for('house_profile', location=address[i]) }} "> View profile </a>'+
+                               '</div>'+
+                               '</div>';
+
+                            var infowindow{{i}} = new google.maps.InfoWindow({
+                              content: contentString{{i}}
+                            });
+                            
+                            marker{{i}}.addListener('click', function() {
+                              if( prev_infowindow ) {
+                                prev_infowindow.close();
+                              }
+                              prev_infowindow = infowindow{{i}}
+                              infowindow{{i}}.open(map, marker{{i}});
+                              
+                            });
+                            
+
+                            {% endfor %}
+                            
+                            
+                            var contentString = '<div id="content">'+
+                               '<h1 id="firstHeading" class="firstHeading"> ' + address[i] + '</h1>'+
+                               '</div>'+
+                               '</div>';
+
+                            var infowindow = new google.maps.InfoWindow({
+                              content: contentString
+                            });
+                            
+                            marker.addListener('click', function() {
+                              infowindow.open(map, marker);
+                            });
+
+
+                            var contentString = '<div id="content">'+
+                               '<h1 id="firstHeading" class="firstHeading">union</h1>'+
+                               '<div id="bodyContent">'+
+                               '<p><b>Price: </b>, </p>'+
+                               '</div>'+
+                               '</div>';
+
+                           var infowindow = new google.maps.InfoWindow({
+                             content: contentString
+                           });
+                           
+                           var marker = new google.maps.Marker({
+                             position: union,
+                             map: map,
+                             title: 'Illinois Union'
+                           });
+                           marker.addListener('click', function() {
+                             infowindow.open(map, marker);
+                           });
+                           
+                           var rectangle = new google.maps.Rectangle({
+                              strokeColor: '#FF0000',
+                              strokeOpacity: 0.8,
+                              strokeWeight: 2,
+                              fillColor: '#FFFFFF',
+                              fillOpacity: 0.35,
+                              map: map,
+                              bounds: {
+                                north: 40.11631,
+                                south: 40.11041,
+                                east: -88.22901,
+                                west: -88.2256
+                                
+                              }
+                            });
         
-        marker{{i}}.addListener('click', function() {
-          if( prev_infowindow ) {
-            prev_infowindow.close();
-          }
-          prev_infowindow = infowindow{{i}}
-          infowindow{{i}}.open(map, marker{{i}});
-          
-        });
-        
+                          }
+                        </script>
+                        <script async defer
+                        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXYbOrAfV21W-SPj8ML-KXDqdP3kj3-_Y&callback=initMap">
+                        </script>
+                    </div>
+                </div>
+            </div>
+          </section>
+      </main>
 
-        {% endfor %}
-        
-        
-        var contentString = '<div id="content">'+
-           '<h1 id="firstHeading" class="firstHeading"> ' + address[i] + '</h1>'+
-           '</div>'+
-           '</div>';
-
-        var infowindow = new google.maps.InfoWindow({
-          content: contentString
-        });
-        
-        marker.addListener('click', function() {
-          infowindow.open(map, marker);
-        });
-
-
-        var contentString = '<div id="content">'+
-           '<h1 id="firstHeading" class="firstHeading">union</h1>'+
-           '<div id="bodyContent">'+
-           '<p><b>Price: </b>, </p>'+
-           '</div>'+
-           '</div>';
-
-       var infowindow = new google.maps.InfoWindow({
-         content: contentString
-       });
-       
-       var marker = new google.maps.Marker({
-         position: union,
-         map: map,
-         title: 'Illinois Union'
-       });
-       marker.addListener('click', function() {
-         infowindow.open(map, marker);
-       });
-       
-      }
+     {% endblock %}
       
-    //   var infowindow = new google.maps.InfoWindow();
-    //   var marker, i;
-    //
-    //   for (i = 0; i < locations.length; i++) {
-    //       marker = new google.maps.Marker({
-    //       position: new google.maps.LatLng(locations[i][1], locations[i][2]),
-    //       map: map
-    //     });
-    //
-    //     google.maps.event.addListener(marker, 'click', (function(marker, i) {
-    //       return function() {
-    //         infowindow.setContent(locations[i][0]);
-    //         infowindow.open(map, marker);
-    //       }
-    //     })(marker, i));
-    // }
-    </script>
-    <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXYbOrAfV21W-SPj8ML-KXDqdP3kj3-_Y&callback=initMap">
-    </script>
- {% endblock %}
-<!-- ADD multiple locations: https://www.taniarascia.com/google-maps-apis-for-multiple-locations/ -->
-<!-- info window: https://developers.google.com/maps/documentation/javascript/infowindows -->
-<!-- addr to machine readable: https://developers.google.com/maps/documentation/geocoding/intro -->

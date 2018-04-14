@@ -6,13 +6,13 @@
                 <div class="row">
                     <div class="col-md-4">
                       <h1> Refine by </h1>
-                      <p> Bedroom </p>
+                      <h4> Bedroom </h4>
                         <form action=' {{ url_for('result') }}' method="post">
                             <div class="form-check">
                               {% if not 'studio' in bed %}
-                              <input class="form-check-input" type="checkbox" value="studio" id="studio" name="bed">
+                              <input class="form-check-input" type="checkbox" value="1" id="studio" name="bed">
                               {% else %}
-                              <input class="form-check-input" type="checkbox" value="studio" id="studio" name="bed" cheked>
+                              <input class="form-check-input" type="checkbox" value="1" id="studio" name="bed" cheked>
                               {% endif %}
                               <label class="form-check-label" for="studio">
                                 Studio
@@ -20,9 +20,9 @@
                             </div>
                             <div class="form-check">
                               {% if not 'oneBed' in bed %}
-                              <input class="form-check-input" type="checkbox" value="oneBed" id="oneBed" name="bed">
+                              <input class="form-check-input" type="checkbox" value="1" id="oneBed" name="bed">
                               {% else %}
-                              <input class="form-check-input" type="checkbox" value="oneBed" id="oneBed" name="bed" checked>
+                              <input class="form-check-input" type="checkbox" value="1" id="oneBed" name="bed" checked>
                               {% endif %}
                               <label class="form-check-label" for="oneBed">
                                 One bedroom
@@ -30,9 +30,9 @@
                             </div>
                             <div class="form-check">
                               {% if not 'twoBed' in bed %}
-                              <input class="form-check-input" type="checkbox" value="twoBed" id="twoBed" name="bed">
+                              <input class="form-check-input" type="checkbox" value="2" id="twoBed" name="bed">
                               {% else %}
-                              <input class="form-check-input" type="checkbox" value="twoBed" id="twoBed" name="bed" checked>
+                              <input class="form-check-input" type="checkbox" value="2" id="twoBed" name="bed" checked>
                               {% endif %}
                               <label class="form-check-label" for="twoBed">
                                 Two bedrooms
@@ -40,9 +40,9 @@
                             </div>
                             <div class="form-check">
                               {% if not 'threeBed' in bed %}
-                              <input class="form-check-input" type="checkbox" value="threeBed" id="threeBed" name="bed">
+                              <input class="form-check-input" type="checkbox" value="3" id="threeBed" name="bed">
                               {% else %}
-                              <input class="form-check-input" type="checkbox" value="threeBed" id="threeBed" name="bed" checked>
+                              <input class="form-check-input" type="checkbox" value="3" id="threeBed" name="bed" checked>
                               {% endif %}
                               <label class="form-check-label" for="threeBed">
                                 Three bedrooms
@@ -50,9 +50,9 @@
                             </div>
                             <div class="form-check">
                               {% if not 'fourBed' in bed %}
-                              <input class="form-check-input" type="checkbox" value="fourBed" id="fourBed" name="bed">
+                              <input class="form-check-input" type="checkbox" value="4" id="fourBed" name="bed">
                               {% else %}
-                              <input class="form-check-input" type="checkbox" value="fourBed" id="fourBed" name="bed" checked>
+                              <input class="form-check-input" type="checkbox" value="4" id="fourBed" name="bed" checked>
                               {% endif %}
                               <label class="form-check-label" for="fourBed">
                                 Four bedrooms
@@ -60,7 +60,7 @@
                             </div>
 
 
-                            <p> Price range </p>
+                        <h4> Price range </h4>
                             <div class="form-check">
                                 {% if not '300' in price %}
                                 <input type="checkbox" class="form-check-input" value="300" id="300" name="price">
