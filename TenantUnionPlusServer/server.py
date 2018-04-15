@@ -2,6 +2,7 @@ import os
 import time
 import json
 import requests
+import numpy as np
 import sqlite3
 from flask import Flask, request, session, g, redirect, url_for, abort, \
      render_template, flash
@@ -11,7 +12,7 @@ import googleapiclient.discovery
 from googleplaces import GooglePlaces, types, lang
 from readlocation import geocode
 from crawler import get_house_info, test
-import numpy as np
+from rate import *
 # from TenantUnionPlus import *
 # CSS: https://stackoverflow.com/questions/22259847/application-not-picking-up-css-file-flask-python
 # http://flask.pocoo.org/docs/0.12/tutorial/setup/#tutorial-setup
@@ -21,7 +22,6 @@ import numpy as np
 # http://flask.pocoo.org/docs/0.12/quickstart/#sessions
 # https://bootsnipp.com/snippets/featured/average-user-rating-rating-breakdown
 # https://demos.creative-tim.com/material-kit/index.html?_ga=2.196049324.1610237639.1521848104-1497747171.1521848104
-
 
 # http://flask.pocoo.org/docs/0.10/deploying/cgi/
 # http://thelazylog.com/install-python-as-local-user-on-linux/
@@ -185,9 +185,11 @@ def map():
     price_post = []
     if request.method == 'GET':
         c.execute("SELECT location, price, bedroom_num, bath_num, url, lat, lng from room")
-    else:
+    else: # POST
         bed_post = request.form.getlist('bed_post')
         price_post = request.form.getlist('price_post')
+        # print(bed_post)
+        # print(price_post)
         cmd = "SELECT location, price, bedroom_num, bath_num, url, lat, lng from room WHERE "
         for i in bed_post:
             cmd = cmd + "bedroom_num = " + str(i) + " OR "
@@ -195,7 +197,6 @@ def map():
             # TODO: change price to unit_price!
             cmd = cmd + "(price >= " + i + " AND price <= " + i + "+200) OR "
         cmd = cmd[:-3]
-        print (cmd)
         c.execute(cmd)
 
     whole_profile = c.fetchall()
@@ -238,20 +239,20 @@ def recommend():
     if request.method == "GET":
         return render_template('questions.html')
     else: # POST
-        year = request.form.get('year')
+        # year = request.form.get('year')
         direction = request.form.get('direction')
         gym = request.form.get('gym')
         cook = request.form.get('cook')
         commute = request.form.get('commute')
         study = request.form.get('study')
-        pet = request.form.get('pet')
+        # pet = request.form.get('pet')
         # result should be a list of (lat, lng)
-        result = recommend_result(year, direction, gym, cook, commute, study, pet)
-        # return redirect(url_for('result'), locations=result)
-        return redirect(url_for('result'))
+        result = recommend_result(year, direction, gym, cook, commute, study)
+        return redirect(url_for('result'), locations=result)
+        # return redirect(url_for('result'))
         
         
-def recommend_result(year, direction, gym, cook, commute, study, pet):
+def recommend_result(year, direction, gym, cook, commute, study):
     # get all lat/lngs
     db = get_db()
     c = db.cursor()
@@ -267,43 +268,48 @@ def recommend_result(year, direction, gym, cook, commute, study, pet):
 
     
 @app.route('/result', methods=['POST', 'GET'])
-def result():
-#def result(locations):
-    if request.method == 'POST':
-        bed = request.form.getlist('bed')
-        price = request.form.getlist('price')
-        print(bed, price)
-        return render_template('result.html', bed=bed, price=price)
-    else:
-        db = get_db()
-        c = db.cursor()
-        whole_profile = []
-        for latLng in locations:
-            c.execute("SELECT location, price, bedroom_num, bath_num, url, lat, lng from room WHERE lat = ? AND lng = ?", [latLng[0], latLng[1]])
-            whole_profile.append(c.fetchone())
+def result(locations):
+    db = get_db()
+    c = db.cursor()
+    bed_post = []
+    price_post = []
+    whole_profile = []
+    # if request.method == 'GET':
+    for latLng in locations:
+        c.execute("SELECT location, price, bedroom_num, bath_num, url, lat, \
+                    lng from room WHERE lat = ? AND lng = ?", [latLng[0], latLng[1]])
+        
+        whole_profile.append(c.fetchone())
 
-        address = []
-        bed = []
-        bath = []
-        rent = []
-        url = []
-        lat = []
-        lng = []
-
+    if request.method == 'POST'
+        bed_post = request.form.getlist('bed_post')
+        price_post = request.form.getlist('price_post')
         for each_profile in whole_profile:
-            ''' TODO: may need to update 'each_profile[5]' when adding more attribute! '''
-            address.append(each_profile[0])
-            rent.append(each_profile[1])
-            bed.append(each_profile[2])
-            bath.append(each_profile[3])
-            url.append(each_profile[4])
-            lat.append(each_profile[5])
-            lng.append(each_profile[6])
-            
-        rent = process_rent(rent)
-        unit_rent = np.array(rent) / np.array(bed)
-        length = len(address)
-        return render_template('result.html', address = address, lat = lat, lng = lng, rent=rent, unit_rent = unit_rent, bed=bed, bath=bath, url=url, length=length)
+            if not each_profile[2] in bed_post or not each_profile[1] in price_post:
+                whole_profile.remove(each_profile)
+    
+    address = []
+    bed = []
+    bath = []
+    rent = []
+    url = []
+    lat = []
+    lng = []
+    
+    for each_profile in whole_profile:
+        ''' TODO: may need to update 'each_profile[5]' when adding more attribute! '''
+        address.append(each_profile[0])
+        rent.append(each_profile[1])
+        bed.append(each_profile[2])
+        bath.append(each_profile[3])
+        url.append(each_profile[4])
+        lat.append(each_profile[5])
+        lng.append(each_profile[6])
+    
+    rent = process_rent(rent)
+    unit_rent = np.array(rent) / np.array(bed)
+    length = len(address)
+    return render_template('result.html', address=address, lat=lat, lng=lng, rent=rent, unit_rent=unit_rent, bed=bed, bath=bath, url=url, length=length)
 
 @app.route('/user/<netid>', methods=["GET", "POST"])
 def profile(netid):
@@ -466,28 +472,87 @@ def get_db():
 
 def init_db():
     db = get_db()
-    url, address, bed, bath, rent, electricity, water, internet, furnished, tv, dishwasher = get_house_info()
-    # address, bed, bath, rent, url = test()
-    # print(address)
-    lat, lng = init_house_lat_lng(address)
     c = db.cursor()
     with app.open_resource('TenantUnionPlus.sql', mode='r') as f:
         c.executescript(f.read())
 
-    for i, URL in enumerate(address):
-        c.execute("INSERT INTO room(electricity, water, internet, furnished, tv, dishwasher, location, price, bedroom_num, bath_num, url, lat, lng) VALUES (?, ?, ?, ?, ?, ?, ?)", \
-                [electricity[i], water[i], internet[i], furnished[i], tv[i], dishwasher[i], address[i], rent[i], bed[i], bath[i], url[i], lat[i], lng[i]])
+    init_facilities('library')
+    init_facilities('restaurant')
+    init_facilities('supermarket')
+    init_facilities('gym')
     
-    name, lat, lng = init_facilities_lat_lng('library')
-    for i, _ in enumerate(name):
-        c.execute("INSERT INTO library(building_name, lat, lng) VALUES (?, ?, ?)", \
-                [name[i], lat[i], lng[i]])
+    c.execute("SELECT * FROM library")
+    library=c.fetchall()
+    c.execute("SELECT * FROM restaurant")
+    restaurant=c.fetchall()
+    c.execute("SELECT * FROM gym")
+    gym=c.fetchall()
+    c.execute("SELECT * FROM supermarket")
+    market=c.fetchall()
+    
+    images, url, address, bed, bath, rent, electricity, water, internet, furnished, tv, dishwasher = get_house_info()
+    lat, lng = init_house_lat_lng(address)
 
-    name, lat, lng = init_facilities_lat_lng('restaurant')
+    for i, URL in enumerate(address):
+        rscore=999999.0
+        gymscore=999999.0
+        marketscore=999999.0
+        libraryscore=999999.0
+        north=0.0
+        out=0.0
+        if lat[i]>41.9398312:
+            north=1
+
+        if lat[i]>40.116364 or lng[i]<-88.233661 or lat[i]<40.098189 or lng[i]>-88.219099:
+            out=1
+        c.execute("SELECT COUNT(*) FROM restaurant")
+        count=c.fetchone()
+        count=count[0]
+        for j in range(count):
+            new_len=(lat[i]-restaurant[j][1])**2+(lng[i]-restaurant[j][2])**2
+            if(rscore>new_len):
+                rscore=new_len
+        c.execute("SELECT COUNT(*) FROM gym")
+        count=c.fetchone()
+        count=count[0]
+        for j in range(count):
+            new_len=(lat[i]-gym[j][1])**2+(lng[i]-gym[j][2])**2
+            if(gymscore>new_len):
+                gymscore=new_len
+        c.execute("SELECT COUNT(*) FROM supermarket")
+        count=c.fetchone()
+        count=count[0]
+        for j in range(count):
+            new_len=(lat[i]-market[j][1])**2+(lng[i]-market[j][2])**2
+            if(marketscore>new_len):
+                marketscore=new_len
+        c.execute("SELECT COUNT(*) FROM library")
+        count=c.fetchone()
+        count=count[0]
+        for j in range(count):
+            new_len=(float(lat[i])-library[j][1])**2+(lng[i]-library[j][2])**2
+            if(libraryscore>new_len):
+                libraryscore=new_len
+
+        c.execute("INSERT INTO room(id, img0, img1, img2, img3, img4, electricity, water, internet, furnished, tv, dishwasher, \
+                    location, price, bedroom_num, bath_num, url, lat, lng, north, out, rscore, gymscore, marketscore, libraryscore) \
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", \
+                    [i, images[i][0], images[i][1], images[i][2], images[i][3], \
+                        images[i][4], electricity[i], water[i], \
+                        internet[i], furnished[i], tv[i], dishwasher[i], address[i], \
+                        rent[i], bed[i], bath[i], url[i], lat[i], lng[i], \
+                        north, out, rscore, gymscore, marketscore, libraryscore])
+    db.commit()
+
+def init_facilities(facility):
+    db = get_db()
+    c = db.cursor()
+    name, lat, lng = init_facilities_lat_lng(facility)
     for i, _ in enumerate(name):
-        c.execute("INSERT INTO restaurant(building_name, lat, lng) VALUES (?, ?, ?)", \
+        c.execute("INSERT INTO " + facility + "(building_name, lat, lng) VALUES (?, ?, ?)", \
                 [name[i], lat[i], lng[i]])
     db.commit()
+
 
 @app.cli.command('initdb')
 def initdb_command():
