@@ -52,7 +52,6 @@ def get_house_info():
 
     pageSource = r.content
     soup = BeautifulSoup(pageSource, "html.parser")
-    
     address = []
     bed = []
     bath = []
@@ -64,6 +63,7 @@ def get_house_info():
     tv = []
     dishwasher = []
     urls = []
+    images = []
 
     for a in soup.find_all('a', href=True):
         if a['href'].startswith("/housingexplorer/Student/"):
@@ -73,21 +73,22 @@ def get_house_info():
             pageSource = r.content
             soup = BeautifulSoup(pageSource, "html.parser")
             # print ("Found the URL:", url)
+            # page_content = soup.find('div', {'id': 'ContentPlaceHolder1_pnlSearch'})
+            images.append(get_image(soup.find('div', {"id": "galleria"})))
             for p in soup.find_all('p'):
                 prop = preprocess(p.getText())
                 if prop == 'Address:':
                     addr = get_address(((p.findNext('td').findNext('span'))))
                     if "/" in addr:
                         continue
-                    if addr == "ContactInfo":
-                        continue
-                    address.append(addr)
+                    if addr != "ContactInfo":
+                        address.append(addr)
                 if prop == 'Beds:':
-                    bed.append(get_beds(p.findNext('td')))
+                    bed.append(general(p.findNext('td')))
                 if prop == 'Baths:':
-                    bath.append(get_baths(p.findNext('td')))
+                    bath.append(general(p.findNext('td')))
                 if prop == 'Rent:':
-                    rent.append(get_rents(p.findNext('td')))
+                    rent.append(general(p.findNext('td')))
                 if prop == 'Electricity:':
                     electricity.append(1 if general(p.findNext('td')) == 'Yes' else 0)
                 if prop == 'Water:':
@@ -98,36 +99,10 @@ def get_house_info():
                     tv.append(1 if general(p.findNext('td')) == 'Yes' else 0)
                 if prop == 'Furnished:':
                     furnished.append(1 if general(p.findNext('td')) == 'Yes' else 0)
-                # if prop == 'Air Condition:':
-                #     air_condition.append((general(p.findNext('td'))))
                 if prop == 'Dishwasher:':
                     dishwasher.append(1 if general(p.findNext('td')) == 'Yes' else 0)
-                # if prop == 'Pets Allowed:':
-                #     pet.append((general(p.findNext('td'))))
-        
-    print(len(water), len(tv), len(internet), len(furnished), len(dishwasher), len(url))
-    # for i in range(len(water)):
-    #     print("w", water[i])
-    #     print("t", tv[i])
-    #     print("i", internet[i])
-    #     print("f", furnished[i])
-    #     print("d", dishwasher[i])
-    
-    return urls, address, bed, bath, rent, electricity, water, internet, furnished, tv, dishwasher
-    # Electricity:
-# Water:
-# Gas:
-# Internet:
-# TV:
-# Furnished:
-# Air Condition:
-# Dishwasher:
-# Pets
-    #print (r.content)
-    #with open('f1.tx','w+') as input:
-    #    input.write(str(r.content))
 
-    # Now start a new psot
+    return images, urls, address, bed, bath, rent, electricity, water, internet, furnished, tv, dishwasher
 
 def preprocess(string):
     string = string.encode('utf-8')
@@ -142,28 +117,24 @@ def get_address(td):
     # print("asds", addr)
     return addr
 
-def get_beds(beds):
-    beds = preprocess(beds.getText())
-    return beds
-    
-def get_baths(baths):
-    baths = preprocess(baths.getText())
-    return baths
-
-def get_rents(rent):
-    rent = preprocess(rent.getText())
-    return rent
-    # r1=requests.post("https://tenantunion.illinois.edu/housingexplorer/Student/PropertyDetails.aspx?aid=3152&Lid=35")
-    # r2=requests.post("https://tenantunion.illinois.edu/housingexplorer/Student/PropertyDetails.aspx?aid=3162&Lid=4063")
-    # with open('f1.tx','w+') as input:
-    #     input.write(str(r1.content))
-    #     input.write(str(r2.content))
-
 def general(td):
     item = preprocess(td.getText())
-    print(item)
     return item
 
+def get_image(div):
+    i = 0
+    img_list = []
+    prefix = 'https://tenantunion.illinois.edu/housingexplorer'
+    for img in div.find_all('img'):
+        img_list.append((prefix + img['src'].replace('..', '')).encode('utf8'))
+        i += 1
+        if i == 5:
+            break
+    while i < 5:
+        img_list.append('https://tenantunion.illinois.edu/housingexplorer/ShowImage.ashx?id=1&iteration=1&AID=3191')
+        i += 1
+    return img_list
+    
 """"
     r = requests.post("https://tenantunion.illinois.edu/housingexplorer/Student/PropertyDetails.aspx?aid=3149&Lid=4058")
     with open('f.tx','w+') as input:
@@ -247,3 +218,6 @@ def process_rent(rent):
     rent = preprocess(rent)
     rent = rent.replace('Rent:', '')
     return rent
+
+if __name__ == '__main__':
+    get_house_info()
