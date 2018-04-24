@@ -86,17 +86,6 @@ def score(location,gym,eat,car,study):
     #print(result)
     return result
 
-def give_result_lat_lng(location, gym, eat, car, study):
-    db = get_db()
-    c = db.cursor()
-    result=score(location,gym,eat,car,study)
-    lat_lng=[]
-    for i in range(result.shape[0]):
-        c.execute("SELECT lat,lng FROM room WHERE location=?",[result[i][0]])
-        answer=c.fetchone()
-        lat_lng.append([answer[0],answer[1]])
-    lat_lng=np.array(lat_lng)
-    return lat_lng
 
 # @app.cli.command('main')
 # def main_():

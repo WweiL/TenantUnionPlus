@@ -7,7 +7,7 @@
                     <div class="col-md-4">
                       <h1> Refine by </h1>
                       <h4> Bedroom </h4>
-                        <form action=' {{ url_for('result') }}' method="post">
+                        <form action=" {{ url_for('result') }}" method="post">
                             <div class="form-check">
                               {% if not 'studio' in bed %}
                               <input class="form-check-input" type="checkbox" value="1" id="studio" name="bed">

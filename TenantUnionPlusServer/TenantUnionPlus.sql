@@ -19,26 +19,31 @@ create table room (
   price integer(4) not NULL default 0,
   bedroom_num integer(1) not NULL default 0,
   bath_num integer(1) not NULL default 0,
-  available bit not NULL default 0,
   furnished bit not NULL default 0,
   air_condition bit not NULL default 0,
   dishwasher bit not NULL default 0,
-  landury bit not NULL default 0,
-  balcony bit not NULL default 0,
   parking bit not NULL default 0,
   pet bit not NULL default 0,
-  web varchar(50) not NULL default 'none',
-  phone integer(12) not NULL default 0,
-  elec bit not NULL default 0,
   water bit not NULL default 0,
-  Gas bit not NULL default 0,
   internet bit not NULL default 0,
   tv bit not NULL default 0,
-  info char(100) not NULL default 'none',
+  electricity BIT NOT NULL DEFAULT 0,
   url char(100),
   lat FLOAT(20),
-  lng FLOAT(20)
-  -- PRIMARY KEY (location) failed if uncomment, not a primary key?
+  lng FLOAT(20),
+  img0 VARCHAR(150),
+  img1 VARCHAR(150),
+  img2 VARCHAR(150),
+  img3 VARCHAR(150),
+  img4 VARCHAR(150),
+  rscore FLOAT(20) NOT NULL,
+  gymscore FLOAT(20) NOT NULL,
+  marketscore FLOAT(20) NOT NULL,
+  libraryscore FLOAT(20) NOT NULL,
+  north integer(1) default -1,
+  out integer(1) default -1,
+  id INTEGER(5),
+  PRIMARY KEY (id)
 );
 drop table if exists gym;
 create table gym (
@@ -68,6 +73,20 @@ CREATE TABLE library (
 DROP TABLE if exists restaurant;
 CREATE TABLE restaurant (
   building_name varchar(20) NOT NULL default 'DiaoSiZhiJia',
+  lat FLOAT(20) NOT NULL,
+  lng FLOAT(20) NOT NULL
+);
+
+DROP TABLE if exists supermarket;
+CREATE TABLE supermarket (
+  building_name varchar(20) NOT NULL default 'countymarket',
+  lat FLOAT(20) NOT NULL,
+  lng FLOAT(20) NOT NULL
+);
+
+DROP TABLE if exists gym;
+CREATE TABLE gym (
+  building_name varchar(20) NOT NULL default 'arc',
   lat FLOAT(20) NOT NULL,
   lng FLOAT(20) NOT NULL
 );

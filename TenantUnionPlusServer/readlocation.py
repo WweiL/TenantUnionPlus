@@ -23,3 +23,9 @@ def geocode(address, geo_keys):
     # g = geocoders.GoogleV3(api_key=geo_keys[0])
     place, (lat, lng) = g.geocode(address)
     return place, lat, lng
+
+def geocodeV1(address):
+    g = geocoders.GoogleV3()
+    # g = geocoders.GoogleV3(api_key=geo_keys[0])
+    place, (lat, lng) = g.geocode(address)
+    return place, lat, lng
