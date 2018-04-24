@@ -8,6 +8,7 @@ Web project for CS411. Helps students find ideal apartment.
     `export LANG=en_US.utf-8`
 1. Goto TenantUnionPlus
 2. run
+    `npm -g install phantomjs-prebuilt`
     `pip install -r requirements.txt`
 3. run the following:
     `pip install --editable .`
