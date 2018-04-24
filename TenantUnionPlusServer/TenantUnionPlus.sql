@@ -31,11 +31,6 @@ create table room (
   url char(100),
   lat FLOAT(20),
   lng FLOAT(20),
-  img0 VARCHAR(150),
-  img1 VARCHAR(150),
-  img2 VARCHAR(150),
-  img3 VARCHAR(150),
-  img4 VARCHAR(150),
   rscore FLOAT(20) NOT NULL,
   gymscore FLOAT(20) NOT NULL,
   marketscore FLOAT(20) NOT NULL,
@@ -45,6 +40,18 @@ create table room (
   id INTEGER(5),
   PRIMARY KEY (id)
 );
+
+DROP TABLE IF EXISTS roomImage;
+CREATE TABLE roomImage(
+    img0 VARCHAR(150),
+    img1 VARCHAR(150),
+    img2 VARCHAR(150),
+    img3 VARCHAR(150),
+    img4 VARCHAR(150),
+    id INTEGER(5),
+    PRIMARY KEY (id)
+);
+
 drop table if exists gym;
 create table gym (
   building_name varchar(20) not NULL default 'home',
