@@ -1,204 +1,161 @@
 {% extends "layout.html" %}
 {% block body %}
       <main role="main">
-          <section class="jumbotron">
-            <div class="container">
-                <!-- House Pictures -->
-                <section class="gallery" style="padding: 0">
-                    <div class="row" >
-                        <div class="col">
-                            <img src="../../example/exampleHouse/Siebel/Pictures/pic_1.jpg" class="img-fluid" alt="pic1">
-                        </div>
-                        <div class="col">
-                            <img src="../../example/exampleHouse/Siebel/Pictures/pic_2.jpg" class="img-fluid" alt="pic2">
-                        </div>
-                        <div class="col">
-                            <img src="../../example/exampleHouse/Siebel/Pictures/pic_2.jpg" class="img-fluid" alt="pic2">
-                        </div>
-                    </div>
-                    <div class="w-100"></div>
-                    <div class="row">
-                        <div class="col">
-                            <img src="../../example/exampleHouse/Siebel/Pictures/pic_3.jpg" class="img-fluid" alt="pic3">
-                        </div>
-                        <div class="col">
-                            <img src="../../example/exampleHouse/Siebel/Pictures/pic_4.jpg" class="img-fluid" alt="pic4">
-                        </div>
-                        <div class="col">
-                            <img src="../../example/exampleHouse/Siebel/Pictures/pic_5.jpg" class="img-fluid" alt="pic5">
-                        </div>
-                    </div>
-                </section>
-                <!-- House Profile -->
-                <section class="houseInfo">
-                    <h2> Name/Location </h2>
-                    <h2> Price </h2>
-                    <div class="row">
-                        <div class="col">
-                            <div class="card">
-                              <div class="card-header">1b1b{{building_name}}</div>
-                              <div class="card-body">$233</div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="card">
-                              <div class="card-header">2b2b</div>
-                              <div class="card-body">$466</div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="card">
-                              <div class="card-header">3b3b</div>
-                              <div class="card-body">$699</div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Features -->
-                    <h2> Features </h2>
-                    <table class="table table-striped">
-                      <thead>
-                        <tr>
-                          <th scope="col">Washer</th>
-                          <th scope="col">Dryer</th>
-                          <th scope="col">Near to Engineering Quad</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>Yes</td>
-                          <td>Yes</td>
-                          <td>No</td>
-                        </tr>
-                      </tbody>
-                    </table>
+          <!-- House Images -->
+          <section class="jumbotron text-center bg-secondary">
+              <section class="card card-1 bg-dark card-center" style="height: 400px; width: 800px">
+              <div id="HouseGallery" class="carousel slide" data-ride="carousel" data-interval="false" wrap="false">
+                  <ol class="carousel-indicators">
+                      <li data-target="#HouseGallery" data-slide-to="0" class="active"></li>
+                      <li data-target="#HouseGallery" data-slide-to="1"></li>
+                      <li data-target="#HouseGallery" data-slide-to="2"></li>
+                      <li data-target="#HouseGallery" data-slide-to="3"></li>
+                      <li data-target="#HouseGallery" data-slide-to="4"></li>
+                  </ol>
+           <div class="carousel-inner text-light" role="listbox">
+             <div class="carousel-item">
+               <img src="{{house_images[0]}}" class="img-fluid" alt="pic0">
+             </div>
 
-
-
-                    <h2> Average Rank </h2>
-                    <p>The average rank of this apartment is: {{avgscore}}</p>
-                    <p>{{count}} people have ranked this apartment</p>
-                    
-                    {% if not session['logged_in'] %}
-                    {% else %}
-
-                    <h2> Your Rank For This Apartment </h2>
-                    <p>{{likeornot}}</p>
-
-                       
-                    <h2> Your Comment </h2>
-                    
-                    <form action="{{ url_for('house_profile', location=session['location']) }}" method="post" id="userComment">
-                      <!--
-                        <ul class="list-group">
-                          <li class="list-group-item">Rank it from 0 to 5: <input name='likeornot' type='number'>
-                          </li>
-                        </ul>
-                      -->
-                      <p>Rank it from 0 to 5:
-                      <select>
-                        <option value="0">0</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="4">5</option>
-                      </select>
-                      </p>
-
-                        <div class="form-group">
-                          <label for="UserWrittenComment">Please write your comment here</label>
-                          <textarea class="form-control" name= "word" form="userComment" rows="3">{{word}}</textarea>
-                        </div>
-
-                        <ul class="list-group">
-                          <button type="submit" class="btn btn-primary float-right"> Submit </button>
-                        </ul>
-                    </form>
-
-                    
-              <!--
-                    {% endif %}
-                    {% for allcomment in allcomments %}
-                    <li class="list-group-item"> {{ allcomment[1] }}gives{{ allcomment[3] }}score for this apartment, his comment is{{ allcomment[2] }}
-                    </li>
-                    {% endfor %}
-
-
-
-
-                   
-                    <div class="card">
-                      <div class="card-header">Comments</div>
-                      <div class="card-body">
-                          <ul class="list-group">
-                              <li class="list-group-item">First Comment</li>
-                              <li class="list-group-item">Second Comment</li>
-                              <li class="list-group-item">Third Comment</li>
-                            </ul>
-                      </div>
-                      <div class="card-footer">
-                          <form>
-                              <div class="form-group">
-                                  <label for="UserWrittenComment">Write Comment</label>
-                                  <textarea class="form-control" id="userComment" rows="3"></textarea>
-                                  <br>
-                                  <button type="submit" class="btn btn-primary float-right">Submit</button>
-                              </div>
-                          </form>
-                      </div>
-                    </div>
-                -->
-
-
-
-
-                </section>
+            <div class="carousel-item">
+                <img src="{{house_images[1]}}" class="img-fluid" alt="pic1">
             </div>
-          </section>
+
+            <div class="carousel-item">
+                <img src="{{house_images[2]}}" class="img-fluid" alt="pic2">
+            </div>
+
+            <div class="carousel-item">
+                <img src="{{house_images[3]}}" class="img-fluid" alt="pic3">
+            </div>
+
+            <div class="carousel-item active">
+                <img src="{{house_images[4]}}" class="img-fluid" alt="pic4">
+            </div>
+           </div>
+           
+           <a class="carousel-control-prev text-success" href="#HouseGallery" role="button" data-slide="prev">
+               <span class="carousel-control-prev-icon" aria-hidden="true"> </span>
+               <span class="sr-only">Previous</span>
+           </a>
+
+           <a class="carousel-control-next text-success" href="#HouseGallery" role="button" data-slide="next">
+               <span class="carousel-control-next-icon" aria-hidden="false"> </span>
+               <span class="sr-only">Next</span>
+           </a>
+               </div>
+               </section>
+
+           </section>
+
+           <!-- House Profile -->
+           <section class="houseInfo">
+               <h2> {{location}} </h2>
+               <div class="row">
+                   <div class="col">
+                       <div class="card">
+                         <div class="card-header">Price</div>
+                         <div class="card-body">${{price}}</div>
+                       </div>
+                   </div>
+                   <div class="col">
+                       <div class="card">
+                         <div class="card-header">Bedroom</div>
+                         <div class="card-body">{{bedroom_num}}</div>
+                       </div>
+                   </div>
+                   <div class="col">
+                       <div class="card">
+                         <div class="card-header">Bathroom</div>
+                         <div class="card-body">{{bath_num}}</div>
+                       </div>
+                   </div>
+               </div>
+               <!-- Features -->
+               <h2> Features </h2>
+               <table class="table table-striped">
+                 <thead>
+                   <tr>
+                     <th scope="col">Internet</th>
+                     <th scope="col">TV</th>
+                     <th scope="col">Dishwasher</th>
+                     <th scope="col">Electricity</th>
+                     <th scope="col">Furnished</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                   <tr>
+                     <td>{{internet}}</td>
+                     <td>{{tv}}</td>
+                     <td>{{dishwasher}}</td>
+                     <td>{{electricity}}</td>
+                     <td>{{furnished}}</td>
+                   </tr>
+                 </tbody>
+               </table>
+
+
+
+               <h2> Average Rank </h2>
+               <p>The average rank of this apartment is: {{avgscore}}</p>
+               <p>{{count}} people have ranked this apartment</p>
+               
+               {% if session['logged_in'] %}
+
+               <h2> Your Rank For This Apartment </h2>
+               <p>{{likeornot}}</p>
+
+                  
+               <h2> Your Comment </h2>
+               
+               <form action="{{ url_for('house_profile', location=session['location']) }}" method="post" id="userComment">
+                 <!--
+                   <ul class="list-group">
+                     <li class="list-group-item">Rank it from 0 to 5: <input name='likeornot' type='number'>
+                     </li>
+                   </ul>
+                 -->
+                 <p>Rank it from 0 to 5:
+                 <select>
+                   <option value="0">0</option>
+                   <option value="1">1</option>
+                   <option value="2">2</option>
+                   <option value="3">3</option>
+                   <option value="4">4</option>
+                   <option value="4">5</option>
+                 </select>
+                 </p>
+
+                   <div class="form-group">
+                     <label for="UserWrittenComment">Please write your comment here</label>
+                     <textarea class="form-control" name= "word" form="userComment" rows="3">{{word}}</textarea>
+                   </div>
+
+                   <ul class="list-group">
+                     <button type="submit" class="btn btn-primary float-right"> Submit </button>
+                   </ul>
+               </form>
+               {% endif %}
+
+           </section>
       </main>
+      
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+      <script>
+      $("input:radio").on('click', function() {
+        // in the handler, 'this' refers to the box clicked on
+        var $box = $(this);
+        if ($box.is(":checked")) {
+          // the name of the box is retrieved using the .attr() method
+          // as it is assumed and expected to be immutable
+          var group = "input:radio[name='" + $box.attr("name") + "']";
+          // the checked state of the group/box on the other hand will change
+          // and the current value is retrieved using .prop() method
+          $(group).prop("checked", false);
+          $box.prop("checked", true);
+        } else {
+          $box.prop("checked", false);
+        }
+      });
+      </script>
 {% endblock %}
-
-
-
-
-
-
-<!--
-      <div class="tz-gallery">
-
-              <div class="row">
-
-                  <div class="col-sm-12 col-md-4">
-                      <a class="lightbox" href="../images/bridge.jpg">
-                          <img src="../images/bridge.jpg" alt="Bridge">
-                      </a>
-                  </div>
-                  <div class="col-sm-6 col-md-4">
-                      <a class="lightbox" href="../images/park.jpg">
-                          <img src="../images/park.jpg" alt="Park">
-                      </a>
-                  </div>
-                  <div class="col-sm-6 col-md-4">
-                      <a class="lightbox" href="../images/tunnel.jpg">
-                          <img src="../images/tunnel.jpg" alt="Tunnel">
-                      </a>
-                  </div>
-                  <div class="col-sm-12 col-md-8">
-                      <a class="lightbox" href="../images/traffic.jpg">
-                          <img src="../images/traffic.jpg" alt="Traffic">
-                      </a>
-                  </div>
-                  <div class="col-sm-6 col-md-4">
-                      <a class="lightbox" href="../images/coast.jpg">
-                          <img src="../images/coast.jpg" alt="Coast">
-                      </a>
-                  </div>
-                  <div class="col-sm-6 col-md-4">
-                      <a class="lightbox" href="../images/rails.jpg">
-                          <img src="../images/rails.jpg" alt="Rails">
-                      </a>
-                  </div>
-
-              </div>
-
-          </div> -->

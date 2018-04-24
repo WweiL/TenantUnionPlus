@@ -249,7 +249,6 @@ def recommend():
         # pet = request.form.get('pet')
         # result should be a list of (lat, lng)
         result = give_result_lat_lng(location, gym, cook, commute, study)
-        print(result)
         session['recommend_result'] = result.tolist()
         return redirect(url_for('result'))
         # return redirect(url_for('result'))
@@ -259,7 +258,7 @@ def give_result_lat_lng(location, gym, eat, car, study):
     c = db.cursor()
     result=score(location,gym,eat,car,study)
     lat_lng=[]
-    for i in range(result.shape[0]):
+    for i in range(20):
         c.execute("SELECT lat,lng FROM room WHERE location=?",[result[i][0]])
         answer=c.fetchone()
         lat_lng.append([answer[0],answer[1]])
@@ -484,8 +483,14 @@ def house_profile(location):
     session['location']=location
     db = get_db()
     c = db.cursor()
-    c.execute('SELECT * FROM room WHERE location = ? ', ([location]))
-    user_profile = c.fetchone()
+    c.execute('SELECT roomImage.img0, roomImage.img1, roomImage.img2, roomImage.img3, roomImage.img4 FROM room, roomImage WHERE room.location = ? AND room.id = roomImage.id', ([location]))
+    house_images = c.fetchone()
+    c.execute('SELECT electricity, water, internet, furnished, tv, dishwasher, \
+                price, bedroom_num, bath_num, url FROM room WHERE location = ?', [location])
+    house_profile = c.fetchone()
+    print(house_profile)
+    electricity, water, internet, furnished, tv, dishwasher, price, bedroom_num, bath_num = process_house_profile(house_profile)
+    # print(house_images)
     db.commit()
 
     if session.get('logged_in'):
@@ -543,7 +548,7 @@ def house_profile(location):
         count=c.fetchone()
         count=count[0]
         db.commit()
-        return render_template('house_profile.html',location=location,likeornot=likeornot,word=word,allcomments=allcomments,avgscore=avgscore,count=count)
+        return render_template('house_profile.html', electricity=electricity, water=water, internet=internet, furnished=furnished, tv=tv, dishwasher=dishwasher, price=price, bedroom_num=bedroom_num, bath_num=bath_num, house_images=house_images, location=location,likeornot=likeornot,word=word,allcomments=allcomments,avgscore=avgscore,count=count)
     else:
         c.execute('SELECT * FROM likes WHERE location = ?', ([location]))
         allcomments=c.fetchall()
@@ -556,9 +561,19 @@ def house_profile(location):
         count=c.fetchone()
         count=count[0]
         db.commit()
-        return render_template('house_profile.html',location=location,allcomments=allcomments,avgscore=avgscore,count=count)
+        return render_template('house_profile.html', electricity=electricity, water=water, internet=internet, furnished=furnished, tv=tv, dishwasher=dishwasher, price=price, bedroom_num=bedroom_num, bath_num=bath_num, house_images=house_images, location=location,allcomments=allcomments,avgscore=avgscore,count=count)
 
-
+def process_house_profile(house_profile):
+    electricity = "Yes" if house_profile[0] == 1 else "No"
+    water = "Yes" if house_profile[1] == 1 else "No"
+    internet = "Yes" if house_profile[2] == 1 else "No"
+    furnished = "Yes" if house_profile[3] == 1 else "No"
+    tv = "Yes" if house_profile[4] == 1 else "No"
+    dishwasher = "Yes" if house_profile[5] == 1 else "No"
+    price = house_profile[6]
+    bedroom_num = house_profile[7]
+    bath_num = house_profile[8]
+    return electricity, water, internet, furnished, tv, dishwasher, price, bedroom_num, bath_num
 def connect_db():
     """Connects to the specific database."""
     rv = sqlite3.connect(app.config['DATABASE'])
@@ -595,7 +610,6 @@ def init_db():
     
     images, url, address, bed, bath, rent, electricity, water, internet, furnished, tv, dishwasher = get_house_info()
     lat, lng = init_house_lat_lng(address)
-
     for i, URL in enumerate(address):
         rscore=999999.0
         gymscore=999999.0
@@ -637,14 +651,16 @@ def init_db():
             if(libraryscore>new_len):
                 libraryscore=new_len
 
-        c.execute("INSERT INTO room(id, img0, img1, img2, img3, img4, electricity, water, internet, furnished, tv, dishwasher, \
+        c.execute("INSERT INTO room(id, electricity, water, internet, furnished, tv, dishwasher, \
                     location, price, bedroom_num, bath_num, url, lat, lng, north, out, rscore, gymscore, marketscore, libraryscore) \
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", \
-                    [i, images[i][0], images[i][1], images[i][2], images[i][3], \
-                        images[i][4], electricity[i], water[i], \
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", \
+                    [i, electricity[i], water[i], \
                         internet[i], furnished[i], tv[i], dishwasher[i], address[i], \
                         rent[i], bed[i], bath[i], url[i], lat[i], lng[i], \
                         north, out, rscore, gymscore, marketscore, libraryscore])
+        c.execute("INSERT INTO roomImage(id, img0, img1, img2, img3, img4) VALUES (?, ?, ?, ?, ?, ?)", \
+                    [i, images[i][0], images[i][1], images[i][2], images[i][3], \
+                        images[i][4]])
     db.commit()
 
 def init_facilities(facility):
