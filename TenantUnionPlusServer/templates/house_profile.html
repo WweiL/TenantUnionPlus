@@ -49,7 +49,7 @@
            </section>
 
            <!-- House Profile -->
-           <section class="houseInfo">
+           <section class="houseInfo card card-2 card-center bg-white">
                <h2> {{location}} </h2>
                <div class="row">
                    <div class="col">
@@ -102,21 +102,20 @@
                
                {% if session['logged_in'] %}
 
-               <h2> Your Rank For This Apartment </h2>
-               <p>{{likeornot}}</p>
+               <h2> Your Rank For This Apartment is: {{likeornot}} </h2>
 
-                  
                <h2> Your Comment </h2>
                
                <form action="{{ url_for('house_profile', location=session['location']) }}" method="post" id="userComment">
-                 <!--
-                   <ul class="list-group">
+                 
+                   <!-- <ul class="list-group">
                      <li class="list-group-item">Rank it from 0 to 5: <input name='likeornot' type='number'>
                      </li>
-                   </ul>
-                 -->
-                 <p>Rank it from 0 to 5:
-                 <select>
+                   </ul> -->
+                
+                 <div>
+                     <span> Rank it from 0 to 5:
+                 <select name='likeornot'>
                    <option value="0">0</option>
                    <option value="1">1</option>
                    <option value="2">2</option>
@@ -124,7 +123,8 @@
                    <option value="4">4</option>
                    <option value="4">5</option>
                  </select>
-                 </p>
+                    </span>
+                </div>
 
                    <div class="form-group">
                      <label for="UserWrittenComment">Please write your comment here</label>
@@ -136,7 +136,13 @@
                    </ul>
                </form>
                {% endif %}
+                {% for allcomment in allcomments %}
+                <li class="list-group-item"> <a href="{{ url_for('profile', netid=allcomment[1]) }}"> {{  allcomment[1] }} </a>  gives a score of {{ allcomment[3] }} for this apartment.
+                    He/She said: {{ allcomment[2] }}
 
+                </li>
+                {% endfor %}
+                    
            </section>
       </main>
       

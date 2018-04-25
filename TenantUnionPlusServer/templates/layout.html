@@ -27,6 +27,10 @@
           box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
         }
         
+        .card-2{
+            width: 80%;
+        }
+        
         .carousel-indicators {
           bottom:-50px;
         }
@@ -35,14 +39,39 @@
             height: 400px;
             width: 900px;
         }
+        
+        .banner:before{
+            content: "";
+            position: fixed;
+            left: 0;
+            right: 0;
+            z-index: -1;
+            display: block;
+            background-image: url(https://mmbiz.qpic.cn/mmbiz_jpg/SKsoqVy6hlANrb5phq0JffZJFib7PWh8bkGpLP12Fv7K6yX8aGAqjSDvkjnZ4jKYnFqPQAXd2X5bsZib7mNtJT7w/640?wx_fmt=jpeg&tp=webp&wxfrom=5&wx_lazy=1);
+            background-size: cover;
+            background-position: top;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            text-align: center;
+            height: 100%;
+            width: 100%;
+            filter: blur(5px);
+            vertical-align: middle;
+        }
 
+        .container1{
+            min-height: 100%;  /* Fallback for browsers do NOT support vh unit */
+            min-height: 100vh; /* These two lines are counted as one :-)       */
+            display: flex;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
 <div class="navbar navbar-dark bg-dark box-shadow">
   <div class="container d-flex justify-content-between">
     <a href="/" class="navbar-brand d-flex align-items-center">
-      <img src="../../static/account.svg" width="20" height="20">
+      <img src="../../static/house_icon.svg" width="40" height="30" style= 'color: white'>
       <strong> Tenant Union+</strong>
     </a>
 

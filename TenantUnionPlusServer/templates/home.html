@@ -1,13 +1,14 @@
 {% extends "layout.html" %}
 {% block body %}
-<section class="jumbotron text-center">
-  <div class="container">
-    <h1 class="jumbotron-heading">Welcome to TenantUnion+</h1>
-    <p class="lead text-muted">A website aims to help first-time student find apartments.</p>
+<section class="text-center banner">
+  <div class="container1">
+    <h1 class="jumbotron-heading text-light">Welcome to TenantUnion+</h1>
+    <p class="lead text-light">A website aims to help first-time student find apartments.</p>
     <p>
       <a href="{{ url_for('recommend') }}" class="btn btn-primary my-2">Let us recommend for you</a>
       <a href="{{ url_for('map') }}" class="btn btn-secondary my-2">Browse the map</a>
     </p>
   </div>
+     <p class="text-light"> Background image credit to: Mingzhe Wang</p>
 </section>
 {% endblock %}

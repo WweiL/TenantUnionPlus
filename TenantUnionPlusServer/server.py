@@ -4,7 +4,6 @@ import json
 import requests
 import numpy as np
 import sqlite3
-import pandas as pd
 from flask import Flask, request, session, g, redirect, url_for, abort, \
      render_template, flash
 import google.oauth2.credentials
@@ -548,6 +547,7 @@ def house_profile(location):
         count=c.fetchone()
         count=count[0]
         db.commit()
+        print(likeornot, "1")
         return render_template('house_profile.html', electricity=electricity, water=water, internet=internet, furnished=furnished, tv=tv, dishwasher=dishwasher, price=price, bedroom_num=bedroom_num, bath_num=bath_num, house_images=house_images, location=location,likeornot=likeornot,word=word,allcomments=allcomments,avgscore=avgscore,count=count)
     else:
         c.execute('SELECT * FROM likes WHERE location = ?', ([location]))
@@ -561,6 +561,7 @@ def house_profile(location):
         count=c.fetchone()
         count=count[0]
         db.commit()
+        print(likeornot, "2")
         return render_template('house_profile.html', electricity=electricity, water=water, internet=internet, furnished=furnished, tv=tv, dishwasher=dishwasher, price=price, bedroom_num=bedroom_num, bath_num=bath_num, house_images=house_images, location=location,allcomments=allcomments,avgscore=avgscore,count=count)
 
 def process_house_profile(house_profile):
@@ -609,6 +610,7 @@ def init_db():
     market=c.fetchall()
     
     images, url, address, bed, bath, rent, electricity, water, internet, furnished, tv, dishwasher = get_house_info()
+    print("Total", len(address), "of apartments")
     lat, lng = init_house_lat_lng(address)
     for i, URL in enumerate(address):
         rscore=999999.0
@@ -689,20 +691,22 @@ def init_house_lat_lng(address):
         addr_tuple = geocode(addr, geo_keys)
         lat.append(addr_tuple[1])
         lng.append(addr_tuple[2])
-
     return lat, lng
 
 def init_facilities_lat_lng(facility):
     union_latlng = {"lat": 40.1094592, "lng": -88.2283148}
     google_places = GooglePlaces(client_secret["map"]["api1"])
-    query_result = google_places.nearby_search(radius=2000 if facility == 'library' else 1000, lat_lng = union_latlng, type=facility)
+    query_result = google_places.nearby_search(radius=5000, lat_lng = union_latlng, type=facility)
     name = []
     lat = []
     lng = []
+    i = 0
     for place in query_result.places:
+        i += 1
         name.append(place.name)
         lat.append(float(place.geo_location[u'lat']))
         lng.append(float(place.geo_location[u'lng']))
+    print("Number of", facility, ":", i)
     return name, lat, lng
     # https://github.com/slimkrazy/python-google-places
 
