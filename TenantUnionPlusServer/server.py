@@ -23,8 +23,8 @@ import requests
 from bs4 import BeautifulSoup
 #from http.cookiejar import LWPCookieJar
 # for py2
-# from http.cookiejar import LWPCookieJar
-from cookielib import LWPCookieJar
+from http.cookiejar import LWPCookieJar
+# from cookielib import LWPCookieJar
 
 # from rate import *
 # from TenantUnionPlus import *
