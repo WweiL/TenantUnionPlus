@@ -7,8 +7,8 @@ import requests
 from bs4 import BeautifulSoup
 #from http.cookiejar import LWPCookieJar
 # for py2
-# from http.cookiejar import LWPCookieJar
-from cookielib import LWPCookieJar
+from http.cookiejar import LWPCookieJar
+# from cookielib import LWPCookieJar
 
 requests = requests.Session()
 requests.cookies = LWPCookieJar('cookies')
