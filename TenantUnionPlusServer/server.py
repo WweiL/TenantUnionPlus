@@ -4,14 +4,28 @@ import json
 import requests
 import numpy as np
 import sqlite3
+import random
 from flask import Flask, request, session, g, redirect, url_for, abort, \
      render_template, flash
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
 from googleplaces import GooglePlaces, types, lang
-from readlocation import geocode
-from crawler import get_house_info, test
+from geopy import geocoders
+# from readlocation import geocode
+# from crawler import get_house_info, test
+import re
+import os
+import sys
+import random
+
+import requests
+from bs4 import BeautifulSoup
+#from http.cookiejar import LWPCookieJar
+# for py2
+# from http.cookiejar import LWPCookieJar
+from cookielib import LWPCookieJar
+
 # from rate import *
 # from TenantUnionPlus import *
 # CSS: https://stackoverflow.com/questions/22259847/application-not-picking-up-css-file-flask-python
@@ -813,3 +827,127 @@ def close_db(error):
     """Closes the database again at the end of the request."""
     if hasattr(g, 'sqlite_db'):
         g.sqlite_db.close()
+
+def geocode(address, geo_keys):
+    g = geocoders.GoogleV3(api_key=random.choice(geo_keys))
+    # g = geocoders.GoogleV3(api_key=geo_keys[0])
+    place, (lat, lng) = g.geocode(address)
+    return place, lat, lng
+    
+
+def get_house_info():
+    username = "ruimeng2"
+    password = "Wszgr123!"
+
+    url = "https://login.uillinois.edu/auth/IllinoisLogin/sm_login.fcc?TYPE=33554433&REALMOID=06-b81d655f-a916-4815-a94b-1e087c2f0111&GUID=&SMAUTHREASON=0&METHOD=GET&SMAGENTNAME=-SM-Y2WdlU%2fpnFMTmAPypPFoZXRghDPs6uCzCBvqiybMgjUmNXVjtrWQCS9HPg2iSnyZ&TARGET=-SM-HTTPS%3a%2f%2ftenantunion%2eillinois%2eedu%2fsm%2flogin%2easp%3fURL%3d%2fhousingexplorer%2fStudent%2fSearchApartment%2easpx"
+
+    headers = {
+        'Accept': 'image/webp,image/*,*/*;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, sdch',
+        'Accept-Language': 'zh',
+        'Connection': 'keep-alive',
+        'Origin':'https://tenantunion.illinois.edu',
+        'Cache-Control':'private',
+        'Refer':'https://tenantunion.illinois.edu/housingexplorer/login.aspx',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
+    }
+
+    form = {
+        'USER': username,
+        'PASSWORD': password,
+        "SMENC": "ISO-8859-1",
+        "SMLOCALE": "US-EN",
+        "queryString": "null",
+        #"target: "HTTPS://tenantunion.illinois.edu/sm/login.asp?URL=/housingexplorer/Student/SearchApartment.aspx",
+        "smquerydata": "",
+        "smauthreason": "0",
+        "smagentname": "Y2WdlU/pnFMTmAPypPFoZXRghDPs6uCzCBvqiybMgjUmNXVjtrWQCS9HPg2iSnyZ",
+        "postpreservationdata":""
+    }
+
+    r = requests.post(url, headers=headers, data=form)
+
+    pageSource = r.content
+    soup = BeautifulSoup(pageSource, "html.parser")
+    address = []
+    bed = []
+    bath = []
+    rent = []
+    electricity = []
+    water = []
+    internet = []
+    furnished = []
+    tv = []
+    dishwasher = []
+    urls = []
+    images = []
+
+    for a in soup.find_all('a', href=True):
+        if a['href'].startswith("/housingexplorer/Student/"):
+            url = str("https://tenantunion.illinois.edu" + a['href'].encode('utf-8'))
+            urls.append(url)
+            r = requests.get(url)
+            pageSource = r.content
+            soup = BeautifulSoup(pageSource, "html.parser")
+            # print ("Found the URL:", url)
+            # page_content = soup.find('div', {'id': 'ContentPlaceHolder1_pnlSearch'})
+            images.append(get_image(soup.find('div', {"id": "galleria"})))
+            for p in soup.find_all('p'):
+                prop = preprocess(p.getText())
+                if prop == 'Address:':
+                    addr = get_address(((p.findNext('td').findNext('span'))))
+                    if "/" in addr:
+                        continue
+                    if addr != "ContactInfo":
+                        address.append(addr)
+                if prop == 'Beds:':
+                    bed.append(general(p.findNext('td')))
+                if prop == 'Baths:':
+                    bath.append(general(p.findNext('td')))
+                if prop == 'Rent:':
+                    rent.append(general(p.findNext('td')))
+                if prop == 'Electricity:':
+                    electricity.append(1 if general(p.findNext('td')) == 'Yes' else 0)
+                if prop == 'Water:':
+                    water.append(1 if general(p.findNext('td')) == 'Yes' else 0)
+                if prop == 'Internet:':
+                    internet.append(1 if general(p.findNext('td')) == 'Yes' else 0)
+                if prop == 'TV:':
+                    tv.append(1 if general(p.findNext('td')) == 'Yes' else 0)
+                if prop == 'Furnished:':
+                    furnished.append(1 if general(p.findNext('td')) == 'Yes' else 0)
+                if prop == 'Dishwasher:':
+                    dishwasher.append(1 if general(p.findNext('td')) == 'Yes' else 0)
+
+    return images, urls, address, bed, bath, rent, electricity, water, internet, furnished, tv, dishwasher
+
+def preprocess(string):
+    string = string.encode('utf-8')
+    string = string.replace('\n', '')
+    string = string.replace('\t', '')
+    string = string.replace('\r', '')
+    string = string.replace(' ', '')
+    return string
+    
+def get_address(td):
+    addr = str(preprocess(td.getText().split("618")[0]))
+    # print("asds", addr)
+    return addr
+
+def general(td):
+    item = preprocess(td.getText())
+    return item
+
+def get_image(div):
+    i = 0
+    img_list = []
+    prefix = 'https://tenantunion.illinois.edu/housingexplorer'
+    for img in div.find_all('img'):
+        img_list.append((prefix + img['src'].replace('..', '')).encode('utf8'))
+        i += 1
+        if i == 5:
+            break
+    while i < 5:
+        img_list.append('https://tenantunion.illinois.edu/housingexplorer/ShowImage.ashx?id=1&iteration=1&AID=3191')
+        i += 1
+    return img_list
