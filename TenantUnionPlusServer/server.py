@@ -485,7 +485,7 @@ def house_profile(location):
     c.execute('SELECT electricity, water, internet, furnished, tv, dishwasher, \
                 price, bedroom_num, bath_num, url FROM room WHERE location = ?', [location])
     house_profile = c.fetchone()
-    print(house_profile)
+    # print(house_profile)
     electricity, water, internet, furnished, tv, dishwasher, price, bedroom_num, bath_num = process_house_profile(house_profile)
     # print(house_images)
     db.commit()
@@ -545,7 +545,6 @@ def house_profile(location):
         count=c.fetchone()
         count=count[0]
         db.commit()
-        print(likeornot, "1")
         return render_template('house_profile.html', electricity=electricity, water=water, internet=internet, furnished=furnished, tv=tv, dishwasher=dishwasher, price=price, bedroom_num=bedroom_num, bath_num=bath_num, house_images=house_images, location=location,likeornot=likeornot,word=word,allcomments=allcomments,avgscore=avgscore,count=count)
     else:
         c.execute('SELECT * FROM likes WHERE location = ?', ([location]))
@@ -559,7 +558,6 @@ def house_profile(location):
         count=c.fetchone()
         count=count[0]
         db.commit()
-        print(likeornot, "2")
         return render_template('house_profile.html', electricity=electricity, water=water, internet=internet, furnished=furnished, tv=tv, dishwasher=dishwasher, price=price, bedroom_num=bedroom_num, bath_num=bath_num, house_images=house_images, location=location,allcomments=allcomments,avgscore=avgscore,count=count)
 
 def process_house_profile(house_profile):
