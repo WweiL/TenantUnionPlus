@@ -60,8 +60,6 @@ API_VERSION = 'v1'
 # key. See http://flask.pocoo.org/docs/0.12/quickstart/#sessions.
 # app.secret_key = 'wBwhfdLNVp0pCQqL5lVIgmXf'
 
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'credentials' not in session:
@@ -612,6 +610,7 @@ def init_db():
     images, url, address, bed, bath, rent, electricity, water, internet, furnished, tv, dishwasher = get_house_info()
     print("Total", len(address), "of apartments")
     lat, lng = init_house_lat_lng(address)
+    
     for i, URL in enumerate(address):
         rscore=999999.0
         gymscore=999999.0
@@ -711,12 +710,22 @@ def init_facilities_lat_lng(facility):
     # https://github.com/slimkrazy/python-google-places
 
 def update_house():
-    address, bed, bath, rent, url = test()
     db = get_db()
     c = db.cursor()
+    images, url, address, bed, bath, rent, electricity, water, internet, furnished, tv, dishwasher = get_house_info()
+    lat, lng = init_house_lat_lng(address)
+    c.execute("SELECT * FROM library")
+    library=c.fetchall()
+    c.execute("SELECT * FROM restaurant")
+    restaurant=c.fetchall()
+    c.execute("SELECT * FROM gym")
+    gym=c.fetchall()
+    c.execute("SELECT * FROM supermarket")
+    market=c.fetchall()
+    
     ''' TRIGGER? '''
     # check house information deletion
-    c.execute("SELECT location, price, bedroom_num, bath_num, url from room")
+    c.execute("SELECT location, price, bedroom_num, bath_num, url, id, electricity, water, internet, furnished, tv, dishwasher from room")
     whole_profile = c.fetchall()
     for each_profile in whole_profile:
         ''' TODO: may need to update 'each_profile[5]' when adding more attribute! '''
@@ -724,16 +733,66 @@ def update_house():
         if URL_db in url:
             pass
         else:   # house information was deleted from TenantUnion
-            c.execute("DELETE FROM romm WHERE url = ?", [URL_db])
+            c.execute("DELETE FROM room WHERE url = ?", [URL_db])
 
     # check house information update
     for i, URL in enumerate(url):
         c.execute("SELECT * FROM room WHERE url = ?", [URL])
         house_profile = c.fetchone()
-        if house_profile == None or houseProfile == 0: # new house added
-            c.execute("INSERT INTO room(location, price, bedroom_num, bath_num, url) VALUES (?, ?, ?, ?, ?)", \
-                        [address[i], rent[i], bed[i], bath[i], url[i]])
-            init_house_lat_lng(address[i])
+        if house_profile == None or house_profile == 0: # new house added
+            c.execute("SELECT id FROM room ORDER BY id DESC") # Get max index
+            maxIdx = c.fetchone()[0] + 1
+            for i, URL in enumerate(address):
+                rscore=999999.0
+                gymscore=999999.0
+                marketscore=999999.0
+                libraryscore=999999.0
+                north=0.0
+                out=0.0
+                if lat[i]>41.9398312:
+                    north=1
+
+                if lat[i]>40.116364 or lng[i]<-88.233661 or lat[i]<40.098189 or lng[i]>-88.219099:
+                    out=1
+                c.execute("SELECT COUNT(*) FROM restaurant")
+                count=c.fetchone()
+                count=count[0]
+                for j in range(count):
+                    new_len=(lat[i]-restaurant[j][1])**2+(lng[i]-restaurant[j][2])**2
+                    if(rscore>new_len):
+                        rscore=new_len
+                c.execute("SELECT COUNT(*) FROM gym")
+                count=c.fetchone()
+                count=count[0]
+                for j in range(count):
+                    new_len=(lat[i]-gym[j][1])**2+(lng[i]-gym[j][2])**2
+                    if(gymscore>new_len):
+                        gymscore=new_len
+                c.execute("SELECT COUNT(*) FROM supermarket")
+                count=c.fetchone()
+                count=count[0]
+                for j in range(count):
+                    new_len=(lat[i]-market[j][1])**2+(lng[i]-market[j][2])**2
+                    if(marketscore>new_len):
+                        marketscore=new_len
+                c.execute("SELECT COUNT(*) FROM library")
+                count=c.fetchone()
+                count=count[0]
+                for j in range(count):
+                    new_len=(float(lat[i])-library[j][1])**2+(lng[i]-library[j][2])**2
+                    if(libraryscore>new_len):
+                        libraryscore=new_len
+
+                c.execute("INSERT INTO room(id, electricity, water, internet, furnished, tv, dishwasher, \
+                            location, price, bedroom_num, bath_num, url, lat, lng, north, out, rscore, gymscore, marketscore, libraryscore) \
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", \
+                            [i+maxIdx, electricity[i], water[i], \
+                                internet[i], furnished[i], tv[i], dishwasher[i], address[i], \
+                                rent[i], bed[i], bath[i], url[i], lat[i], lng[i], \
+                                north, out, rscore, gymscore, marketscore, libraryscore])
+                c.execute("INSERT INTO roomImage(id, img0, img1, img2, img3, img4) VALUES (?, ?, ?, ?, ?, ?)", \
+                            [i+maxIdx, images[i][0], images[i][1], images[i][2], images[i][3], \
+                                images[i][4]])
 
         else: #check whether house price get updated
             c.execute("SELECT price FROM room WHERE url = ?", [URL])
